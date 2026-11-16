@@ -1,0 +1,30 @@
+\section{Problema y servicio}
+\label{sec:problema}
+
+De noche la sede de la facultad queda con un solo guardia de seguridad, de 22:00 a 06:00. Ese guardia tiene dos maneras de hacer la ronda y las dos tienen un costo.
+
+Si sale a caminar el piso, la central queda vacía: nadie mira las cámaras ni atiende el teléfono mientras dura el recorrido. Si se queda en la central, depende de cámaras fijas que no cubren todo. Los pasillos laterales, el depósito y la salida de emergencia son puntos ciegos conocidos. En ningún caso queda un registro confiable de qué se revisó y a qué hora; a la mañana siguiente el jefe de seguridad solo tiene la palabra del guardia y lo que haya grabado alguna cámara.
+
+\subsection{Qué proponemos}
+
+Un Unitree Go2 hace la ronda por una ruta fija de puntos de control en planta baja. En cada punto se detiene unos segundos y lo marca como verificado. Si encuentra una puerta abierta, algo que le bloquea el paso o una persona en una zona restringida, avisa a la central y espera la decisión del guardia.
+
+El guardia no maneja el robot con un joystick. Lo supervisa desde una app Android en la central y le da órdenes concretas: iniciar una ronda, pausarla, mandarlo a la base, reconocer una alerta. La app se llama Vigía.
+
+\subsection{Cómo se resuelve hoy y por qué un robot}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{@{}l L L@{}}
+\toprule
+\textbf{Alternativa} & \textbf{Qué resuelve} & \textbf{Qué no resuelve} \\
+\midrule
+Guardia que camina & Ve todo de cerca & Deja la central sola; no hay registro de puntos verificados \\
+Más cámaras fijas & Cubren más superficie desde la central & Siguen teniendo ángulos muertos y no pueden acercarse a revisar una puerta \\
+Segundo guardia nocturno & Uno camina y otro mira & Es el costo más alto y es justamente lo que la institución no quiere sumar \\
+Go2 haciendo la ronda & El guardia se queda en la central y el robot camina; cada punto queda registrado con hora & Necesita supervisión, carga de batería y un gateway propio (ver sección~\ref{sec:robot}) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Este uso no es una idea nuestra. Hay empresas de seguridad que ya ofrecen rondas con robots cuadrúpedos en plantas industriales y depósitos, con un operador humano que decide ante cada evento. \pendiente{agregar una fuente de un caso real}
