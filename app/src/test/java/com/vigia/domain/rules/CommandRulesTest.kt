@@ -151,6 +151,13 @@ class CommandRulesTest {
         assertEquals(CommandRules.STALE_WARNING, result.warning)
     }
 
+    @Test
+    fun `stop stays enabled while another stop is pending`() {
+        val result = CommandRules.availability(OPERATIONAL_STOP, ctx(pending = setOf(OPERATIONAL_STOP)))
+        assertTrue(result.enabled)
+        assertNull(result.reason)
+    }
+
     // Alertas e incidentes
 
     @Test

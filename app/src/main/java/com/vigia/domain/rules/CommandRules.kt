@@ -26,8 +26,9 @@ object CommandRules {
     const val STALE_WARNING = "Sin datos recientes: la orden puede no llegar"
 
     fun availability(type: CommandType, ctx: CommandContext): CommandAvailability {
-        if (type in ctx.pendingTypes) return disabled("Hay una orden igual pendiente")
+        // La detención es la orden de seguridad: reenviarla no tiene riesgo
         if (type == CommandType.OPERATIONAL_STOP) return enabled(ctx)
+        if (type in ctx.pendingTypes) return disabled("Hay una orden igual pendiente")
 
         val telemetry = ctx.telemetry ?: return disabled("Sin datos del robot")
         val state = telemetry.state
