@@ -1,0 +1,78 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla,es-nodecimaldot,es-noquoting]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tabularx,booktabs,array}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage[most]{tcolorbox}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit,backgrounds,calc,babel}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+
+% Mismos tokens que el tema oscuro de la app
+\definecolor{noche}{HTML}{0F1726}
+\definecolor{panel}{HTML}{1B2638}
+\definecolor{ok}{HTML}{2E9E6A}
+\definecolor{ambar}{HTML}{E0A526}
+\definecolor{alerta}{HTML}{D64545}
+\definecolor{tinta}{HTML}{18202C}
+\definecolor{gris}{HTML}{667085}
+\definecolor{linea}{HTML}{D9DEE7}
+\definecolor{fondo}{HTML}{F3F5F9}
+
+\graphicspath{{img/}}
+
+\titleformat{\section}{\Large\bfseries\color{noche}}{\thesection.}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries\color{tinta}}{\thesubsection.}{0.6em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{gris}}{}{0em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{gris}Vigía · HMI/HRI para Unitree Go2}
+\fancyhead[R]{\small\color{gris}Desarrollo de Aplicaciones I · UADE}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\setlist{itemsep=2pt,topsep=4pt}
+\setlength{\parskip}{0.5em}
+\setlength{\parindent}{0pt}
+\renewcommand{\arraystretch}{1.25}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+
+\lstset{basicstyle=\ttfamily\footnotesize,frame=single,rulecolor=\color{linea},
+  backgroundcolor=\color{fondo},xleftmargin=4pt,xrightmargin=4pt,columns=fullflexible,
+  breaklines=true,
+  literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1 {ñ}{{\~n}}1 {ü}{{\"u}}1}
+
+\newtcolorbox{nota}[1][]{enhanced,colback=fondo,colframe=ambar,arc=2mm,
+  boxrule=0.6pt,left=6pt,right=6pt,#1}
+
+% Dato que el equipo todavía tiene que completar o verificar
+\newcommand{\pendiente}[1]{\textcolor{red!70!black}{[#1]}}
+
+\begin{document}
+
+\input{secciones/00-portada}
+\input{secciones/01-problema}
+\input{secciones/02-robot}
+\input{secciones/03-entorno}
+\input{secciones/04-interaccion}
+\input{secciones/05-telemetria-comandos}
+\input{secciones/06-escenarios-riesgos}
+\input{secciones/07-arquitectura}
+\input{secciones/08-decisiones}
+\input{secciones/09-fuentes}
+
+\end{document}
