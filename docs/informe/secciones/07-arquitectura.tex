@@ -1,48 +1,40 @@
 \section{Arquitectura del APK}
 \label{sec:arquitectura}
 
-La app está hecha con Kotlin y Jetpack Compose, siguiendo MVVM. La UI observa un \texttt{StateFlow} que expone cada ViewModel y le manda eventos; nunca toca el simulador. Entre el ViewModel y el simulador hay un \texttt{RobotRepository}, que es la única puerta a la telemetría, las órdenes y los eventos. El día que exista un gateway real, se escribe otra implementación de esa interfaz y el resto de la app no cambia.
+La app está hecha con Kotlin y Jetpack Compose, siguiendo MVVM. El código se divide en cuatro capas: \texttt{ui}, \texttt{presentation}, \texttt{domain} y \texttt{data}. La UI observa el \texttt{StateFlow} que expone cada ViewModel y le manda eventos. Nunca toca el simulador.
+
+El dominio no depende de ninguna otra capa. Tiene el modelo, las reglas y las interfaces de los repositorios. La capa de datos implementa esas interfaces. \texttt{RobotRepository} es la única puerta a la telemetría, las órdenes y los eventos del robot. El día que exista un gateway real, se escribe otra implementación de esa interfaz y el resto de la app no cambia.
 
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[
-  caja/.style={draw=noche,fill=fondo,rounded corners=2pt,thick,minimum width=3.1cm,minimum height=0.9cm,font=\small,align=center},
-  flecha/.style={-{Stealth[length=2mm]},thick,gris}]
-  \node[caja] (ui) {Pantallas Compose};
-  \node[caja,right=1.1cm of ui] (vm) {ViewModels\\\scriptsize StateFlow<UiState>};
-  \node[caja,right=1.1cm of vm] (repo) {RobotRepository\\\scriptsize interfaz};
-  \node[caja,below=1.1cm of repo] (sim) {SimulatedRobotRepository\\\scriptsize JSON};
-  \node[caja,below=1.1cm of sim] (motor) {RobotSimulator\\\scriptsize tick de 1 s};
-  \node[caja,below=1.1cm of vm] (hist) {HistoryRepository};
-  \node[caja,below=1.1cm of hist] (room) {Room\\\scriptsize rondas y eventos};
-  \draw[flecha] (ui) -- node[above,font=\scriptsize]{eventos} (vm);
-  \draw[flecha] (vm.north west) to[bend right=25] node[above,font=\scriptsize]{estado} (ui.north east);
-  \draw[flecha] (vm) -- (repo);
-  \draw[flecha] (repo) -- (sim);
-  \draw[flecha] (sim) -- (motor);
-  \draw[flecha] (vm) -- (hist);
-  \draw[flecha] (hist) -- (room);
-\end{tikzpicture}
-\caption{Capas de la app. Las flechas indican quién conoce a quién.}
+\input{../arquitectura/diagrama}
+\caption{Capas de la app. Las flechas llenas indican quién conoce a quién; las punteadas, quién crea cada pieza.}
 \label{fig:arquitectura}
 \end{figure}
 
 \begin{lstlisting}
 com.vigia
- |- domain/model       telemetría, estados, misión, alertas, órdenes
- |- domain/rules       habilitación de órdenes, umbrales de batería, antigüedad
- |- domain/repository  interfaces RobotRepository y HistoryRepository
- |- data/contract      DTOs del contrato JSON y mappers
- |- data/sim           simulador, repositorio simulado, controles de simulación
- |- data/local         Room: base, entidades y DAOs
- |- presentation       ViewModels y UiState
+ |- domain/model       telemetría, estados, misiones, alertas, órdenes, plano
+ |- domain/rules       CommandRules, BatteryRules, Freshness, IncidentRules
+ |- domain/repository  RobotRepository, HistoryRepository, SimulationControls
+ |- domain/usecase     HistoryRecorder: pasa misiones y eventos al historial
+ |- data/contract      DTOs del contrato JSON, mappers y ContractJson
+ |- data/sim           RobotSimulator y SimulatedRobotRepository
+ |- data/local         Room: VigiaDatabase, entidades, DAOs y RoomHistoryRepository
+ |- presentation       un ViewModel y su UiState por pantalla, MainViewModel
  |- ui                 pantallas, componentes, tema y navegación
  |- di                 AppContainer (inyección manual)
 \end{lstlisting}
 
+Cada pantalla tiene su ViewModel: selección de robot, supervisión, misiones, alertas, historial y panel de simulación. \texttt{MainViewModel} es el de la navegación y solo cuenta las alertas sin reconocer para mostrar el badge. \texttt{SimulationViewModel} usa \texttt{SimulationControls}, una interfaz aparte para que el resto de las pantallas no pueda tocar la simulación.
+
+\texttt{AppContainer} crea una sola vez el simulador, la base y los repositorios. También arranca \texttt{HistoryRecorder}, que escucha al robot y guarda cada ronda y cada evento en el historial. Las factories de los ViewModels toman sus dependencias de ahí.
+
 \subsection{Simulador}
 
-El simulador corre en una corrutina con un tick de un segundo y un multiplicador (x1 o x5) para que las demos no duren lo mismo que una ronda real. En cada tick mueve el robot sobre la ruta a 0,8~m/s, descuenta batería, se detiene unos segundos en cada punto de control y lo marca como verificado. Desde el panel de simulación se le puede cortar la conexión, pedir que rechace la próxima orden, bajar la batería o provocar un obstáculo, una puerta abierta o una persona en zona restringida. Nada de esto necesita internet.
+El simulador tiene dos partes. \texttt{RobotSimulator} hace de robot: recibe órdenes en JSON, contesta con un \texttt{command\_ack} y genera telemetría y alertas en JSON. No usa corrutinas y el tiempo solo avanza cuando se lo piden, así que en los tests es determinístico. \texttt{SimulatedRobotRepository} hace de app: serializa cada orden, parsea lo que vuelve y lo pasa al dominio. Entre los dos solo viaja el JSON del contrato (sección~\ref{sec:contrato}).
+
+El repositorio simulado corre una corrutina con un tick de un segundo y un multiplicador (x1 o x5) para que las demos no duren lo mismo que una ronda real. En cada tick el simulador mueve el robot sobre la ruta a 0,8~m/s, descuenta batería, se detiene unos segundos en cada punto de control y lo marca como verificado. Desde el panel de simulación se le puede cortar la conexión, pedir que rechace la próxima orden, bajar la batería o provocar un obstáculo, una puerta abierta o una persona en zona restringida. Nada de esto necesita internet.
 
 \subsection{Persistencia}
 
