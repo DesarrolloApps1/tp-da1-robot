@@ -7,4 +7,6 @@
     <string name="tab_missions">Misiones</string>
     <string name="tab_alerts">Alertas</string>
     <string name="tab_history">Historial</string>
+
+    <string name="simulation_panel">Panel de simulación</string>
 </resources>
