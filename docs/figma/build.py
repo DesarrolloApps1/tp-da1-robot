@@ -418,7 +418,7 @@ ROUTES = {
     "zonas-criticas": ("Zonas críticas", ["BASE", "CP4", "CP6", "BASE"]),
 }
 SPEED_MPS, DWELL_SECONDS = 0.8, 3.0  # PatrolPace.kt
-# En la app el rótulo de CP7 pisa el nombre de "Salida de emergencia"; acá va debajo del punto
+# El rótulo de CP7 va debajo del punto para no pisar el nombre de "Salida de emergencia" (igual que FacilityMap.kt)
 LABEL_OFFSET = {"CP7": (5, 11)}
 
 
