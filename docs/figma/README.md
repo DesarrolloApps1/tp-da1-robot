@@ -106,6 +106,4 @@ Los tableros completan lo que pide la consigna:
 
 ## Diferencias con la app
 
-- En la app, los diálogos, el indicador de la pestaña activa, los filtros del Historial y la hoja del panel usan los colores por defecto de Material 3 (un gris violáceo), porque `Theme.kt` no define `surfaceContainerHigh`, `secondaryContainer` ni `surfaceContainerLow`. En Figma se usan `NavyRaised`, `BlueDeep` y `NavySurface` para que todo quede en la misma paleta.
-- En el plano de la app el rótulo de CP7 pisa el nombre de la zona "Salida de emergencia". En Figma va debajo del punto.
 - La app usa Roboto (la fuente del sistema); en Figma usamos Inter, que tiene medidas parecidas, y JetBrains Mono para los números.
