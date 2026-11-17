@@ -11,11 +11,10 @@ import com.vigia.domain.model.IncidentDecision
 import com.vigia.domain.model.SystemClock
 import com.vigia.domain.repository.RobotRepository
 import com.vigia.presentation.resolveIncidentParams
-import kotlinx.coroutines.delay
+import com.vigia.presentation.ticker
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -25,20 +24,12 @@ class SupervisionViewModel(
     tickMillis: Long = 1_000,
 ) : ViewModel() {
 
-    // Recalcula la antigüedad aunque no llegue telemetría nueva
-    private val ticker = flow {
-        while (true) {
-            emit(Unit)
-            delay(tickMillis)
-        }
-    }
-
     val state: StateFlow<SupervisionUiState> = combine(
         repository.telemetry,
         repository.lastUpdateMillis,
         repository.alerts,
         repository.commands,
-        ticker,
+        ticker(tickMillis),
     ) { telemetry, lastUpdate, alerts, commands, _ ->
         supervisionState(telemetry, lastUpdate, alerts, commands, clock.now())
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SupervisionUiState.Initial)
