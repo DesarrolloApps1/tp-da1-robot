@@ -24,6 +24,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.vigia.R
+import com.vigia.ui.screens.AlertsScreen
 import com.vigia.ui.screens.PlaceholderScreen
 import com.vigia.ui.screens.RobotSelectScreen
 import com.vigia.ui.screens.SupervisionScreen
@@ -76,7 +77,7 @@ private fun MainScreen(navController: NavHostController = rememberNavController(
                 SupervisionScreen(onChooseRoute = { navController.navigateToTab(Route.Missions) })
             }
             composable<Route.Missions> { PlaceholderScreen(stringResource(R.string.tab_missions)) }
-            composable<Route.Alerts> { PlaceholderScreen(stringResource(R.string.tab_alerts)) }
+            composable<Route.Alerts> { AlertsScreen() }
             composable<Route.History> { PlaceholderScreen(stringResource(R.string.tab_history)) }
         }
     }
