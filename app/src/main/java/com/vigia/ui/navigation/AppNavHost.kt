@@ -6,6 +6,8 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -16,6 +18,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -24,6 +28,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.vigia.R
+import com.vigia.presentation.main.MainViewModel
 import com.vigia.ui.screens.AlertsScreen
 import com.vigia.ui.screens.PlaceholderScreen
 import com.vigia.ui.screens.RobotSelectScreen
@@ -54,7 +59,11 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
 
 // Las pestañas tienen su propio NavController para que cada una conserve su estado
 @Composable
-private fun MainScreen(navController: NavHostController = rememberNavController()) {
+private fun MainScreen(
+    navController: NavHostController = rememberNavController(),
+    viewModel: MainViewModel = viewModel(factory = MainViewModel.Factory),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val backStack by navController.currentBackStackEntryAsState()
     val destination = backStack?.destination
 
@@ -65,7 +74,12 @@ private fun MainScreen(navController: NavHostController = rememberNavController(
                     NavigationBarItem(
                         selected = destination?.hasRoute(tab.route::class) == true,
                         onClick = { navController.navigateToTab(tab.route) },
-                        icon = { Icon(tab.icon, contentDescription = null) },
+                        icon = {
+                            val count = if (tab.route == Route.Alerts) state.unacknowledgedAlerts else 0
+                            BadgedBox(badge = { if (count > 0) Badge { Text(count.toString()) } }) {
+                                Icon(tab.icon, contentDescription = null)
+                            }
+                        },
                         label = { Text(stringResource(tab.label)) },
                     )
                 }
