@@ -580,10 +580,10 @@ def text_button(x_right, y, label, color=C["blue"], enabled=True):
     return g([t], "Text button/" + label), w
 
 
-def alert_dialog(title, items, confirm=None, dismiss=None, warn_icon=False, confirm_color=C["blue"],
-                 confirm_enabled=True):
-    """AlertDialog de M3 (312 dp). items: funciones (x, y, w) -> (svg, alto) separadas 12 dp."""
-    x, w = 24, 312
+def dialog_box(title, items, confirm=None, dismiss=None, warn_icon=False, confirm_color=C["blue"],
+               confirm_enabled=True, x=24, w=312):
+    """Contenedor del AlertDialog de M3. items: funciones (x, y, w) -> (svg, alto) separadas 12 dp.
+    Devuelve (svg, alto) con el borde superior en y = 0."""
     inner = w - 48
     parts, cy = [], 24
     if warn_icon:
@@ -607,9 +607,13 @@ def alert_dialog(title, items, confirm=None, dismiss=None, warn_icon=False, conf
         b, bw = text_button(bx, cy, dismiss)
         parts.append(b)
     h = cy + 40 + 24
-    y = round((H - h) / 2)
-    return g([scrim(0.55), g([rect(x, 0, w, h, 28, C["raised"])] + parts, "Dialog", f"translate(0 {y})")],
-             "Dialog/" + title)
+    return g([rect(x, 0, w, h, 28, C["raised"])] + parts, "Dialog/" + title), h
+
+
+def alert_dialog(*args, **kw):
+    """Diálogo centrado sobre la pantalla, con el scrim detrás."""
+    box, h = dialog_box(*args, **kw)
+    return g([scrim(0.55), g(box, transform=f"translate(0 {round((H - h) / 2)})")], "Dialog")
 
 
 def p_item(s, style="bodyMedium", fill=C["muted"], italic=False):
@@ -1170,8 +1174,214 @@ def s_simulation(sid):
     return out + [g(sheet + col.out, "Bottom sheet/Panel de simulación")]
 
 
+# ================================================================ TABLEROS ===
+BOARD_BG = "#070C16"  # un poco más oscuro que la app para que los frames se despeguen del fondo
+
+
+def thumb(sid, x, y, scale, caption=True, prefix="t"):
+    """Miniatura de un frame (svg anidado y recortado) con su número y nombre debajo."""
+    _, _, name, _, fn = by_id(sid)
+    key = f"{prefix}{sid}x{int(x)}y{int(y)}"
+    body = "".join(fn(key))
+    w, h = W * scale, H * scale
+    out = [rect(x - 1, y - 1, w + 2, h + 2, 18 * scale + 1, C["line"]),
+           f'<svg x="{num(x)}" y="{num(y)}" width="{num(w)}" height="{num(h)}" viewBox="0 0 {W} {H}">'
+           f'{clip_rect(key + "c", 0, 0, W, H, 28)}<g clip-path="url(#{key}c)">'
+           f'<rect width="{W}" height="{H}" fill="{C["navy"]}"/>{body}</g></svg>']
+    if caption:
+        title, _, sub = name.partition(" · ")
+        out.append(text(x, y + h + 22, f"{sid} · {title}", 14, 600, C["ink"]))
+        if sub:
+            out.append(text(x, y + h + 40, "\n".join(wrap(sub, 12, w + 60)), 12, 400, C["muted"], lh=16))
+    return g(out, f"Frame {sid}")
+
+
+def arrow(pts, label=None, color=C["blue"], dash=None, at=None):
+    """Flecha ortogonal por los puntos dados; la etiqueta va en `at` o en la mitad del tramo más largo."""
+    d = "M" + " L".join(f"{num(float(a))} {num(float(b))}" for a, b in pts)
+    out = [path(d, "none", color, 2, dash=dash)]
+    (ax, ay), (bx, by) = pts[-2], pts[-1]
+    ang = math.atan2(by - ay, bx - ax)
+    h1 = (bx - 10 * math.cos(ang - 0.45), by - 10 * math.sin(ang - 0.45))
+    h2 = (bx - 10 * math.cos(ang + 0.45), by - 10 * math.sin(ang + 0.45))
+    out.append(path(f"M{h1[0]:.1f} {h1[1]:.1f} L{bx} {by} L{h2[0]:.1f} {h2[1]:.1f}", "none", color, 2))
+    if label:
+        if at is None:
+            segs = list(zip(pts, pts[1:]))
+            (p1, p2) = max(segs, key=lambda s: abs(s[1][0] - s[0][0]) + abs(s[1][1] - s[0][1]))
+            at = ((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)
+        lines = label.split("\n")
+        lw = max(tw(ln, 12, 600) for ln in lines) + 18
+        lh = 8 + 16 * len(lines)
+        mx, my = at
+        out += [rect(mx - lw / 2, my - lh / 2, lw, lh, min(12, lh / 2), BOARD_BG, color, 1.5),
+                text(mx, my - lh / 2 + 16, label, 12, 600, color, SANS, "middle", 16)]
+    return g(out, "Flecha/" + (label or "").replace("\n", " "))
+
+
+def pill(cx, cy, label, color=C["blue"], w=None):
+    w = w or tw(label, 14, 600) + 36
+    return g([rect(cx - w / 2, cy - 20, w, 40, 20, "none", color, 1.5),
+              text(cx, cy + 5, label, 14, 600, color, SANS, "middle")], "Nodo/" + label)
+
+
+def board_head(title, sub):
+    return [text(60, 84, title, 40, 700, C["ink"]), text(60, 120, sub, 18, 400, C["muted"])]
+
+
+def section_label(x, y, label, color=C["blue"]):
+    return text(x, y, label.upper(), 13, 700, color, ls=1.2)
+
+
+# --------------------------------------------------------- mapa de navegación
+def board_navigation():
+    s = 0.3
+    tw_, th = W * s, H * s  # 108 x 240
+    cols = lambda c: 60 + c * 250
+    rows = lambda r: 220 + r * 350
+    place = {"01": (0, 0), "02": (0, 1), "07": (0, 2), "03": (0, 3), "04": (0, 4), "06a": (0, 5), "06b": (0, 6),
+             "08": (1, 2), "05": (1, 4), "06c": (1, 6),
+             "16": (2, 0), "18": (2, 1), "09": (2, 4),
+             "17": (3, 0), "10": (3, 4), "06d": (3, 5), "11": (3, 6),
+             "12": (4, 4), "13": (4, 5),
+             "14": (5, 4), "15": (5, 5)}
+    pos = {sid: (cols(c), rows(r)) for sid, (r, c) in place.items()}
+
+    def R(sid, f=0.5):
+        x, y = pos[sid]
+        return x + tw_ + 6, y + th * f
+
+    def L(sid, f=0.5):
+        x, y = pos[sid]
+        return x - 6, y + th * f
+
+    def T(sid, f=0.5):
+        x, y = pos[sid]
+        return x + tw_ * f, y - 6
+
+    def B(sid, f=0.5):
+        x, y = pos[sid]
+        return x + tw_ * f, y + th + 52
+
+    out = board_head("Mapa de navegación · Vigía",
+                     "Todos los frames y cómo se llega a cada uno. Línea llena: acción del guardia. "
+                     "Punteada: cambio que viene del robot o del sistema.")
+    out += [section_label(60, 190, "Ingreso, misiones y control"), section_label(60, rows(2) - 30, "Pestañas y demo"),
+            section_label(cols(4) + tw_ + 60, rows(2) - 30, "Advertencias, desconexión e incidentes")]
+    out += [thumb(sid, x, y, s, prefix="n") for sid, (x, y) in pos.items()]
+    sys_ = dict(color=C["muted"], dash="6 5")
+    a = []
+    a.append(arrow([R("01"), L("02")], "Vigía-01"))
+    a.append(arrow([R("02"), L("07")], "Elegir ronda"))
+    a.append(arrow([R("07"), L("03")], "Iniciar"))
+    a.append(arrow([B("07"), T("08")], "Batería < 30 %", at=(cols(2) + tw_ / 2, rows(1) - 34), **sys_))
+    a.append(arrow([R("03", 0.35), L("04", 0.35)], "Volver a\nla base"))
+    a.append(arrow([R("04"), L("06a")], "Confirmar"))
+    a.append(arrow([R("06a"), L("06b")], "Confirmada", **sys_))
+    x6 = cols(5) + tw_ + 40
+    a.append(arrow([R("06a", 0.8), (x6, rows(0) + th * 0.8), (x6, rows(1) + th / 2), L("06c")], "Rechazada",
+                   at=(x6, rows(1) + 60), **sys_))
+    xb = cols(3) + tw_ / 2
+    a.append(arrow([B("03"), (xb, rows(1) + th / 2), L("05")], "Mantener STOP", at=(xb, rows(1) + 40)))
+    a.append(arrow([(xb, rows(1) + th / 2), (xb, rows(2) + th / 2), L("09")], "Batería < 25 %",
+                   at=(xb + 60, rows(2) + th / 2), **sys_))
+    a.append(arrow([(xb, rows(2) + th / 2), (xb, rows(3) + th / 2), L("10")], "Sin datos > 3 s",
+                   at=(xb + 60, rows(3) + th / 2), **sys_))
+    a.append(arrow([(xb, rows(3) + th / 2), (xb, rows(4) + th / 2), L("12")], "Obstáculo",
+                   at=(xb + 60, rows(4) + th / 2), **sys_))
+    a.append(arrow([(xb, rows(4) + th / 2), (xb, rows(5) + th / 2), L("14")], "Persona",
+                   at=(xb + 60, rows(5) + th / 2), **sys_))
+    a.append(arrow([R("09", 0.3), (cols(4) + tw_ + 40, rows(2) + th * 0.3),
+                    (cols(4) + tw_ + 40, rows(0) + th * 0.7), R("04", 0.7)], "Volver a\nla base",
+                   at=(cols(4) + tw_ + 40, rows(1) + th / 2)))
+    a.append(arrow([R("10"), L("06d")], "Orden\n5 s sin ack", **sys_))
+    a.append(arrow([R("06d"), L("11")], "Vuelve el\nenlace", **sys_))
+    a.append(arrow([R("12"), L("13")], "Decidir"))
+    x3 = cols(3) + tw_ / 2 + 22
+    xr, yr = cols(6) + tw_ + 70, rows(1) - 36
+    a.append(arrow([T("13", 0.8), (cols(5) + tw_ * 0.8, rows(4) - 40), (xr, rows(4) - 40),
+                    (xr, yr), (x3, yr), (x3, rows(0) + th + 58)],
+                   "Enviar decisión: vuelve a Supervisión", at=(cols(5) + 20, yr)))
+    a.append(arrow([L("15"), R("14")], "Decidir"))
+    a.append(arrow([B("16"), T("17")], "Tocar\nuna ronda"))
+    out += a
+    # barra inferior y panel: se llega desde cualquier pestaña
+    out.append(g([rect(cols(0) - 10, rows(4) - 10, 360, 120, 16, "none", C["line"], 1.5),
+                  text(cols(0) + 8, rows(4) + 20, "Desde cualquier pestaña", 14, 700, C["ink"]),
+                  text(cols(0) + 8, rows(4) + 44,
+                       "Barra inferior: Supervisión (02, 03), Misiones (07),\nAlertas (15) e Historial (16).\n"
+                       "Ícono de herramienta: Panel de simulación (18).", 13, 400, C["muted"], lh=20)], "Nota/Barra inferior"))
+    out.append(arrow([R("16", 0.3), L("18", 0.3)], "Herramienta", **sys_))
+    return svg_doc(1900, rows(5) + th + 110, "".join(out), BOARD_BG, "Mapa de navegación")
+
+
+# ------------------------------------------------------------ flujos -------
+def flow_row(y, steps, labels, notes, s=0.42, x0=60, gap=150, prefix="f"):
+    """Fila de un flujo: frames grandes en secuencia, la acción en cada flecha y una nota por paso."""
+    tw_, th = W * s, H * s
+    out = []
+    for i, sid in enumerate(steps):
+        x = x0 + i * (tw_ + gap)
+        out.append(thumb(sid, x, y, s, prefix=prefix))
+        out.append(g([circle(x + 14, y - 22, 13, C["blue"]), text(x + 14, y - 17, str(i + 1), 13, 700, C["navy"], SANS, "middle")],
+                     f"Paso {i + 1}"))
+        note = "\n".join(wrap(notes[i], 13, tw_ + gap - 30))
+        out.append(text(x, y + th + 66, note, 13, 400, C["muted"], lh=19))
+        if i < len(steps) - 1:
+            lab = labels[i]
+            dash = dict(color=C["muted"], dash="6 5") if lab.startswith("~") else {}
+            out.append(arrow([(x + tw_ + 8, y + th / 2), (x + tw_ + gap - 8, y + th / 2)], lab.lstrip("~"), **dash))
+    return out
+
+
+def board_flow_normal():
+    out = board_head("Flujo normal · ronda completa",
+                     "Escenario 1: el guardia elige el robot, inicia la Ronda completa, la sigue en el plano y "
+                     "después la revisa en el Historial.")
+    out += flow_row(200, ["01", "02", "07", "03", "16", "17"],
+                    ["Vigía-01", "Elegir ronda", "Iniciar", "~Termina\nla ronda", "Tocar\nla ronda"],
+                    ["Vigía-02 está fuera de servicio: se ve atenuado y no se puede tocar.",
+                     "Robot en base y cargando. Solo Elegir ronda está habilitada; las otras dicen por qué no.",
+                     "Las tres rondas con puntos, metros y duración estimada. Iniciar habilitado con batería ≥ 30 %.",
+                     "Con el inicio confirmado vuelve a Supervisión: ruta en el plano, puntos verificados en verde.",
+                     "El robot vuelve solo a la base. La ronda queda guardada con su resultado.",
+                     "La línea de tiempo muestra cada punto verificado, alertas y decisiones."])
+    return svg_doc(2050, 700, "".join(out), BOARD_BG, "Flujo normal")
+
+
+def board_flow_failure():
+    out = board_head("Flujo con falla · desconexión y obstáculo",
+                     "Escenarios 3 y 4. Las flechas punteadas son cambios que vienen del robot o de la conexión, "
+                     "no de un toque del guardia.")
+    out.append(section_label(60, 190, "A · Desconexión (escenario 3)"))
+    out += flow_row(240, ["03", "10", "06d", "11"],
+                    ["~Sin datos\n> 3 s", "Pausar", "~Vuelve el\nenlace"],
+                    ["Ronda en curso con datos al día.",
+                     "Banner rojo, plano y tarjetas en gris, \"hace 12 s\". Las órdenes siguen visibles pero avisan "
+                     "que pueden no llegar.",
+                     "La orden queda Sin respuesta a los 5 s. Si el corte pasa de 60 s el robot vuelve solo a la base.",
+                     "Al reconectar todo se actualiza. El chip Sin respuesta queda a la vista para que el guardia "
+                     "sepa que la pausa no se aplicó."],
+                    prefix="fa")
+    out.append(section_label(60, 840, "B · Obstáculo en el pasillo B (escenario 4)"))
+    out += flow_row(890, ["03", "12", "13", "17"],
+                    ["~Obstáculo", "Decidir", "Enviar\ndecisión"],
+                    ["El robot patrulla hacia el Pasillo de aulas B.",
+                     "Estado Incidente en rojo y banner que pide una decisión. Pausar se deshabilita y dice por qué.",
+                     "Se elige primero y se envía aparte, para evitar un toque accidental.",
+                     "La ronda termina con 7/8 puntos. Alerta, decisión y orden quedan en el Historial."],
+                    prefix="fb")
+    return svg_doc(1500, 1360, "".join(out), BOARD_BG, "Flujo con falla")
+
+
+BOARDS = [  # (slug, título, fn)
+    ("00-mapa-de-navegacion", "Mapa de navegación", board_navigation),
+    ("00-flujo-normal", "Flujo normal", board_flow_normal),
+    ("00-flujo-con-falla", "Flujo con falla", board_flow_failure),
+]
+
+
 # ================================================================ SALIDA =====
-BOARDS = []  # (slug, título, fn)
 
 
 def svg_doc(w, h, body, bg, title):
