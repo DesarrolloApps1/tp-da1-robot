@@ -25,6 +25,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.vigia.R
 import com.vigia.ui.screens.PlaceholderScreen
+import com.vigia.ui.screens.RobotSelectScreen
 
 private data class Tab(val route: Route, val label: Int, val icon: ImageVector)
 
@@ -39,10 +40,8 @@ private val tabs = listOf(
 fun AppNavHost(navController: NavHostController = rememberNavController()) {
     NavHost(navController, startDestination = Route.RobotSelect) {
         composable<Route.RobotSelect> {
-            PlaceholderScreen(
-                title = stringResource(R.string.robot_select_title),
-                actionLabel = stringResource(R.string.robot_select_continue),
-                onAction = {
+            RobotSelectScreen(
+                onSelected = {
                     navController.navigate(Route.Main) { popUpTo<Route.RobotSelect> { inclusive = true } }
                 },
             )
