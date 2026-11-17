@@ -2,7 +2,6 @@
     <string name="app_name">Vigía</string>
 
     <string name="robot_select_title">Selección de robot</string>
-    <string name="robot_select_continue">Continuar</string>
 
     <string name="tab_supervision">Supervisión</string>
     <string name="tab_missions">Misiones</string>

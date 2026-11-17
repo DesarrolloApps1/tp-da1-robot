@@ -1,7 +1,10 @@
 package com.vigia.di
 
 import android.content.Context
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.room.Room
+import com.vigia.VigiaApplication
 import com.vigia.data.local.RoomHistoryRepository
 import com.vigia.data.local.VigiaDatabase
 import com.vigia.data.sim.RobotSimulator
@@ -37,3 +40,7 @@ class AppContainer(context: Context) {
             .start(appScope)
     }
 }
+
+// Atajo para las factories de los ViewModels
+val CreationExtras.appContainer: AppContainer
+    get() = (requireNotNull(this[APPLICATION_KEY]) as VigiaApplication).container
