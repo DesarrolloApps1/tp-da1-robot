@@ -203,22 +203,22 @@ Tema oscuro por defecto: el guardia trabaja de noche en una central con poca luz
 
 ## 10. Hoja de ruta (un PR por feature)
 
-Branches `joa/<feature>` desde `dev`, PR a `dev`. Los PRs del código están apilados: cada branch sale de la anterior, así que **se mergean en orden**. Después de mergear uno, el siguiente muestra solo sus commits.
+Branches `joa/<feature>` desde `dev`, PR a `dev`.
 
 | # | Branch | Contenido | PR | Estado |
 |---|---|---|---|---|
-| 1 | `joa/project-plan` | Este plan, README y consigna en `docs/` | #1 | PR abierto |
-| 2 | `joa/android-scaffold` | Proyecto Gradle, tema, navegación vacía, CI | #2 | PR abierto |
-| 3 | `joa/domain-model` | Modelos y reglas de dominio con tests | #4 | PR abierto |
-| 4 | `joa/robot-simulator` | Contrato JSON, simulador y repositorio simulado con tests | #5 | PR abierto |
-| 5 | `joa/history-room` | Historial en Room con tests | #6 | PR abierto |
-| 6 | `joa/supervision-screen` | Selección de robot, supervisión y barra de órdenes | #7 | PR abierto |
-| 7 | `joa/alerts-incidents` | Alertas, reconocimiento y decisiones de incidentes | #8 | PR abierto |
-| 8 | `joa/missions-history-screens` | Pantallas de misiones e historial | #9 | PR abierto |
-| 9 | `joa/simulation-panel` | Panel de simulación con los cinco escenarios | #10 | PR abierto |
-| 10 | `joa/latex-docs` | Documento en LaTeX en `docs/informe` | #3 | PR abierto |
+| 1 | `joa/project-plan` | Este plan, README y consigna en `docs/` | #1 | Mergeado |
+| 2 | `joa/android-scaffold` | Proyecto Gradle, tema, navegación vacía, CI | #2 | Mergeado |
+| 3 | `joa/domain-model` | Modelos y reglas de dominio con tests | #4 | Mergeado |
+| 4 | `joa/robot-simulator` | Contrato JSON, simulador y repositorio simulado con tests | #5 | Mergeado |
+| 5 | `joa/history-room` | Historial en Room con tests | #6 | Mergeado |
+| 6 | `joa/supervision-screen` | Selección de robot, supervisión y barra de órdenes | #7 | Mergeado |
+| 7 | `joa/alerts-incidents` | Alertas, reconocimiento y decisiones de incidentes | #8 | Mergeado |
+| 8 | `joa/missions-history-screens` | Pantallas de misiones e historial | #9 | Mergeado |
+| 9 | `joa/simulation-panel` | Panel de simulación con los cinco escenarios | #10 | Mergeado |
+| 10 | `joa/latex-docs` | Documento en LaTeX en `docs/informe` | #3 | Mergeado |
 
-Las filas 2 a 9 están apiladas sobre el plan y se mergean en este orden: #1, #2, #4, #5, #6, #7, #8, #9, #10. El informe (#3) solo depende de #1.
+Todo está mergeado en `dev`. El trabajo pendiente está en los issues de GitHub (#11 a #18).
 
 Lo que no se termine queda como issue en el repo, con el número de fila de esta tabla.
 
