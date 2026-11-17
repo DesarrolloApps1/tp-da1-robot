@@ -203,7 +203,7 @@ Tema oscuro por defecto: el guardia trabaja de noche en una central con poca luz
 
 ## 10. Hoja de ruta (un PR por feature)
 
-Branches `joa/<feature>` desde `dev`, PR a `dev`. Los PRs del código están apilados: cada branch sale de la anterior, así que **se mergean en orden**. Después de mergear uno, el siguiente muestra solo sus commits.
+Branches `joa/<feature>` desde `dev`, PR a `dev`.
 
 | # | Branch | Contenido | PR | Estado |
 |---|---|---|---|---|
