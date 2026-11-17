@@ -35,3 +35,24 @@ El robot no está pensado para hablar con la gente, pero se la va a cruzar: pers
 \subsection{Cuándo tiene que intervenir un humano}
 
 El robot sigue la ronda solo, pero frena y espera al guardia en cuatro situaciones: algo le bloquea el camino, detecta a una persona en una zona restringida, la batería baja del umbral crítico o pierde la conexión por más de un minuto. En este último caso no puede esperar a nadie, así que vuelve solo a la base.
+
+\subsection{Diseño en Figma}
+\label{sec:figma}
+
+Los frames del diseño los genera \texttt{docs/figma/build.py} a partir del tema y los textos de la app, así que coinciden con lo que se ve en pantalla. Cubren los estados normal, deshabilitado, advertencia y error, y dos recorridos: un flujo normal y un flujo con falla. El prototipo navegable se arma importando esos frames en Figma y conectándolos como explica \texttt{docs/figma/README.md}. La figura~\ref{fig:navegacion} muestra el mapa de navegación y la figura~\ref{fig:flujo-falla}, el flujo con falla.
+
+Prototipo: \pendiente{link al prototipo en Figma}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{../figma/png/00-mapa-de-navegacion.png}
+\caption{Mapa de navegación: todos los frames y cómo se llega a cada uno.}
+\label{fig:navegacion}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth,height=0.62\textheight,keepaspectratio]{../figma/png/00-flujo-con-falla.png}
+\caption{Flujo con falla: desconexión (escenario 3) y obstáculo en el pasillo B (escenario 4).}
+\label{fig:flujo-falla}
+\end{figure}
