@@ -120,6 +120,9 @@ private fun DrawScope.drawRoute(state: FacilityMapState, scale: Float, colors: M
     drawPath(path, colors.route.copy(alpha = 0.7f), style = Stroke(2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
 }
 
+// El rótulo de CP7 pisa el nombre de "Salida de emergencia", así que va debajo del punto
+private val LABELS_BELOW = setOf("CP7")
+
 private fun DrawScope.drawCheckpoints(state: FacilityMapState, scale: Float, colors: MapColors, textMeasurer: TextMeasurer) {
     val routeIds = state.routeId?.let(Facility::route)?.checkpointIds.orEmpty().toSet()
     val radius = 4.dp.toPx()
@@ -140,7 +143,8 @@ private fun DrawScope.drawCheckpoints(state: FacilityMapState, scale: Float, col
             drawCircle(colors.route, radius * 2, center, style = Stroke(1.5.dp.toPx()))
         }
         val label = textMeasurer.measure(checkpoint.id, TextStyle(color = colors.label, fontSize = 8.sp))
-        drawText(label, topLeft = center + Offset(radius + 1.dp.toPx(), -label.size.height / 2f))
+        val below = if (checkpoint.id in LABELS_BELOW) 8.dp.toPx() else 0f
+        drawText(label, topLeft = center + Offset(radius + 1.dp.toPx(), below - label.size.height / 2f))
     }
 }
 
