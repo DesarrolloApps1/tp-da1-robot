@@ -222,7 +222,8 @@ def top_app_bar():
     """TopAppBar de MainScreen: título y acceso al panel de simulación."""
     return g([rect(0, 24, W, 64, 0, C["surface"]),
               text(16, 64, "Vigía", 22, 400, C["ink"]),
-              icon("build", 316, 44, 22, C["muted"])], "Top app bar")
+              g([rect(304, 32, 48, 48, 24), icon("build", 316, 44, 22, C["muted"])], "Abrir panel de simulación")],
+             "Top app bar")
 
 
 TABS = [("home", "Supervisión"), ("list", "Misiones"), ("warning", "Alertas"), ("date", "Historial")]
@@ -234,13 +235,15 @@ def nav_bar(active, badge=0):
     for i, (ic, label) in enumerate(TABS):
         cx = 45 + i * 90
         on = i == active
+        tab = [rect(cx - 45, 720, 90, 68)]  # área de toque de la pestaña completa
         if on:
-            out.append(rect(cx - 32, 730, 64, 32, 16, C["blueDeep"]))
-        out.append(icon(ic, cx - 12, 734, 24, C["ink"] if on else C["muted"]))
+            tab.append(rect(cx - 32, 730, 64, 32, 16, C["blueDeep"]))
+        tab.append(icon(ic, cx - 12, 734, 24, C["ink"] if on else C["muted"]))
         if ic == "warning" and badge:
-            out += [circle(cx + 12, 735, 8, C["red"]),
+            tab += [circle(cx + 12, 735, 8, C["red"]),
                     text(cx + 12, 739, str(badge), 11, 600, C["navy"], SANS, "middle")]
-        out.append(text(cx, 778, label, 12, 600 if on else 500, C["ink"] if on else C["muted"], SANS, "middle"))
+        tab.append(text(cx, 778, label, 12, 600 if on else 500, C["ink"] if on else C["muted"], SANS, "middle"))
+        out.append(g(tab, "Tab/" + label))
     out.append(gesture_bar())
     return g(out, "Navigation bar")
 
