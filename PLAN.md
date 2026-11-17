@@ -134,11 +134,11 @@ com.vigia
  ├─ domain/
  │   ├─ model/        RobotTelemetry, RobotState, Mission, Route, Checkpoint, Alert, Command, CommandRecord...
  │   ├─ rules/        CommandRules (habilitación), BatteryRules, Freshness, IncidentRules (incidente abierto)
- │   ├─ repository/   RobotRepository, HistoryRepository (interfaces)
+ │   ├─ repository/   RobotRepository, HistoryRepository, SimulationControls (interfaces)
  │   └─ usecase/      HistoryRecorder (pasa eventos y misiones del robot al historial)
  ├─ data/
  │   ├─ contract/     DTOs JSON + mappers (contrato propuesto)
- │   ├─ sim/          RobotSimulator, SimulatedRobotRepository, SimulationControls
+ │   ├─ sim/          RobotSimulator, SimulatedRobotRepository
  │   └─ local/        Room: base, entidades, DAOs, RoomHistoryRepository
  ├─ presentation/     ViewModels y UiState por pantalla
  ├─ ui/               pantallas, componentes, tema, navegación
@@ -205,18 +205,20 @@ Tema oscuro por defecto: el guardia trabaja de noche en una central con poca luz
 
 Branches `joa/<feature>` desde `dev`, PR a `dev`. Los PRs del código están apilados: cada branch sale de la anterior, así que **se mergean en orden**. Después de mergear uno, el siguiente muestra solo sus commits.
 
-| # | Branch | Contenido | Estado |
-|---|---|---|---|
-| 1 | `joa/project-plan` | Este plan, README y consigna en `docs/` | Hecho |
-| 2 | `joa/android-scaffold` | Proyecto Gradle, tema, navegación vacía, CI | Pendiente |
-| 3 | `joa/domain-model` | Modelos y reglas de dominio con tests | Pendiente |
-| 4 | `joa/robot-simulator` | Contrato JSON, simulador y repositorio simulado con tests | Pendiente |
-| 5 | `joa/history-room` | Historial en Room con tests | Pendiente |
-| 6 | `joa/supervision-screen` | Selección de robot, supervisión y barra de órdenes | Pendiente |
-| 7 | `joa/alerts-incidents` | Alertas, reconocimiento y decisiones de incidentes | Pendiente |
-| 8 | `joa/missions-history-screens` | Pantallas de misiones e historial | Pendiente |
-| 9 | `joa/simulation-panel` | Panel de simulación con los cinco escenarios | Pendiente |
-| 10 | `joa/latex-docs` | Documento en LaTeX en `docs/informe` | Pendiente |
+| # | Branch | Contenido | PR | Estado |
+|---|---|---|---|---|
+| 1 | `joa/project-plan` | Este plan, README y consigna en `docs/` | #1 | PR abierto |
+| 2 | `joa/android-scaffold` | Proyecto Gradle, tema, navegación vacía, CI | #2 | PR abierto |
+| 3 | `joa/domain-model` | Modelos y reglas de dominio con tests | #4 | PR abierto |
+| 4 | `joa/robot-simulator` | Contrato JSON, simulador y repositorio simulado con tests | #5 | PR abierto |
+| 5 | `joa/history-room` | Historial en Room con tests | #6 | PR abierto |
+| 6 | `joa/supervision-screen` | Selección de robot, supervisión y barra de órdenes | #7 | PR abierto |
+| 7 | `joa/alerts-incidents` | Alertas, reconocimiento y decisiones de incidentes | #8 | PR abierto |
+| 8 | `joa/missions-history-screens` | Pantallas de misiones e historial | #9 | PR abierto |
+| 9 | `joa/simulation-panel` | Panel de simulación con los cinco escenarios | #10 | PR abierto |
+| 10 | `joa/latex-docs` | Documento en LaTeX en `docs/informe` | #3 | PR abierto |
+
+Las filas 2 a 9 están apiladas sobre el plan y se mergean en este orden: #1, #2, #4, #5, #6, #7, #8, #9, #10. El informe (#3) solo depende de #1.
 
 Lo que no se termine queda como issue en el repo, con el número de fila de esta tabla.
 
@@ -226,6 +228,8 @@ Lo que no se termine queda como issue en el repo, con el número de fila de esta
 - Investigación técnica del Go2 con fuentes (sensores, autonomía, versiones AIR/PRO/EDU).
 - Evidencias de los cinco escenarios (capturas) y video de demostración.
 - Diagrama de arquitectura exportado para la entrega.
+
+El trabajo pendiente se sigue en los [issues del repo](https://github.com/DesarrolloApps1/tp-da1-robot/issues).
 
 ## 11. Convenciones
 
