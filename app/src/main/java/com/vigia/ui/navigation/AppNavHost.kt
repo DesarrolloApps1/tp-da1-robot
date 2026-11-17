@@ -26,6 +26,7 @@ import androidx.navigation.compose.rememberNavController
 import com.vigia.R
 import com.vigia.ui.screens.PlaceholderScreen
 import com.vigia.ui.screens.RobotSelectScreen
+import com.vigia.ui.screens.SupervisionScreen
 
 private data class Tab(val route: Route, val label: Int, val icon: ImageVector)
 
@@ -62,13 +63,7 @@ private fun MainScreen(navController: NavHostController = rememberNavController(
                 tabs.forEach { tab ->
                     NavigationBarItem(
                         selected = destination?.hasRoute(tab.route::class) == true,
-                        onClick = {
-                            navController.navigate(tab.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
+                        onClick = { navController.navigateToTab(tab.route) },
                         icon = { Icon(tab.icon, contentDescription = null) },
                         label = { Text(stringResource(tab.label)) },
                     )
@@ -77,10 +72,20 @@ private fun MainScreen(navController: NavHostController = rememberNavController(
         },
     ) { padding ->
         NavHost(navController, startDestination = Route.Supervision, modifier = Modifier.padding(padding)) {
-            composable<Route.Supervision> { PlaceholderScreen(stringResource(R.string.tab_supervision)) }
+            composable<Route.Supervision> {
+                SupervisionScreen(onChooseRoute = { navController.navigateToTab(Route.Missions) })
+            }
             composable<Route.Missions> { PlaceholderScreen(stringResource(R.string.tab_missions)) }
             composable<Route.Alerts> { PlaceholderScreen(stringResource(R.string.tab_alerts)) }
             composable<Route.History> { PlaceholderScreen(stringResource(R.string.tab_history)) }
         }
+    }
+}
+
+private fun NavHostController.navigateToTab(route: Route) {
+    navigate(route) {
+        popUpTo(graph.findStartDestination().id) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
     }
 }
