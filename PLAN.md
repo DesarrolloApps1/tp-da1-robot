@@ -98,7 +98,7 @@ Cada orden pasa por los estados **pendiente → confirmada / rechazada / sin res
 | Iniciar misión | Conectado, estado `DOCKED` o `IDLE`, batería ≥ 30 %, sin incidente abierto | `BATTERY_TOO_LOW`, `ROBOT_BUSY` |
 | Pausar | `PATROLLING` | `INVALID_STATE` |
 | Reanudar | `PAUSED`, batería ≥ 15 %, sin incidente abierto | `BATTERY_TOO_LOW` |
-| Cancelar misión | `PATROLLING`, `PAUSED` o `INCIDENT`. Pide confirmación | `INVALID_STATE` |
+| Cancelar misión | `PATROLLING`, `PAUSED`, `INCIDENT` o `STOPPED`. Pide confirmación | `INVALID_STATE` |
 | Regresar a punto seguro | Cualquier estado fuera de `DOCKED` y `RETURNING` | `PATH_BLOCKED` |
 | Detención operativa | Siempre visible. Se mantiene apretado 1,5 s para evitar toques accidentales | Ninguno; puede quedar sin respuesta |
 | Reconocer alerta | Alerta activa sin reconocer | `UNKNOWN_ALERT` |

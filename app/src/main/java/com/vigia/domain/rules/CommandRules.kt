@@ -71,7 +71,9 @@ object CommandRules {
 
     fun requiresHold(type: CommandType): Boolean = type == CommandType.OPERATIONAL_STOP
 
-    private val CANCELLABLE = setOf(RobotState.PATROLLING, RobotState.PAUSED, RobotState.INCIDENT)
+    // Desde STOPPED también: si no, un robot detenido solo podría volver a la base
+    private val CANCELLABLE =
+        setOf(RobotState.PATROLLING, RobotState.PAUSED, RobotState.INCIDENT, RobotState.STOPPED)
 
     private fun enabled(ctx: CommandContext) =
         CommandAvailability(enabled = true, reason = null, warning = if (ctx.stale) STALE_WARNING else null)

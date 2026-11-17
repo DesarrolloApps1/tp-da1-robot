@@ -113,9 +113,9 @@ class CommandRulesTest {
     // Cancelar y regresar
 
     @Test
-    fun `cancel is enabled while patrolling, paused or in incident`() {
+    fun `cancel is enabled while patrolling, paused, in incident or stopped`() {
         assertEquals(
-            setOf(RobotState.PATROLLING, RobotState.PAUSED, RobotState.INCIDENT),
+            setOf(RobotState.PATROLLING, RobotState.PAUSED, RobotState.INCIDENT, RobotState.STOPPED),
             enabledStates(CANCEL_MISSION),
         )
     }
