@@ -134,7 +134,8 @@ com.vigia
  ├─ domain/
  │   ├─ model/        RobotTelemetry, RobotState, Mission, Route, Checkpoint, Alert, Command, CommandRecord...
  │   ├─ rules/        CommandRules (habilitación), BatteryRules, Freshness
- │   └─ repository/   RobotRepository, HistoryRepository (interfaces)
+ │   ├─ repository/   RobotRepository, HistoryRepository (interfaces)
+ │   └─ usecase/      HistoryRecorder (pasa eventos y misiones del robot al historial)
  ├─ data/
  │   ├─ contract/     DTOs JSON + mappers (contrato propuesto)
  │   ├─ sim/          RobotSimulator, SimulatedRobotRepository, SimulationControls
