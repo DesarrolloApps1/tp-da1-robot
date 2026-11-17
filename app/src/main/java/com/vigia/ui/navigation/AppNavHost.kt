@@ -30,6 +30,7 @@ import androidx.navigation.compose.rememberNavController
 import com.vigia.R
 import com.vigia.presentation.main.MainViewModel
 import com.vigia.ui.screens.AlertsScreen
+import com.vigia.ui.screens.MissionsScreen
 import com.vigia.ui.screens.PlaceholderScreen
 import com.vigia.ui.screens.RobotSelectScreen
 import com.vigia.ui.screens.SupervisionScreen
@@ -90,7 +91,9 @@ private fun MainScreen(
             composable<Route.Supervision> {
                 SupervisionScreen(onChooseRoute = { navController.navigateToTab(Route.Missions) })
             }
-            composable<Route.Missions> { PlaceholderScreen(stringResource(R.string.tab_missions)) }
+            composable<Route.Missions> {
+                MissionsScreen(onStarted = { navController.navigateToTab(Route.Supervision) })
+            }
             composable<Route.Alerts> { AlertsScreen() }
             composable<Route.History> { PlaceholderScreen(stringResource(R.string.tab_history)) }
         }
