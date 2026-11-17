@@ -1,0 +1,10 @@
+{
+  "type": "alert",
+  "alertId": "al-0002",
+  "severity": "CRITICAL",
+  "kind": "PERSON_IN_RESTRICTED_ZONE",
+  "zone": "Laboratorio de informática",
+  "message": "Persona detectada en zona restringida",
+  "raisedAt": "2026-11-16T03:01:38.800Z",
+  "requiresDecision": true
+}

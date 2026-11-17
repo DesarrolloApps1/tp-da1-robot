@@ -1,0 +1,7 @@
+{
+  "type": "command_ack",
+  "commandId": "cmd-0001",
+  "result": "REJECTED",
+  "reason": "BATTERY_TOO_LOW",
+  "respondedAt": "2026-11-16T03:00:01.600Z"
+}
