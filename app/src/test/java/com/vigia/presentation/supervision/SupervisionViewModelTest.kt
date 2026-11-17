@@ -147,6 +147,7 @@ class SupervisionViewModelTest {
             assertEquals("al-0001", open.openIncident?.id)
             assertTrue(open.enabled(CommandType.RESOLVE_INCIDENT))
             assertTrue(open.enabled(CommandType.ACK_ALERT))
+            assertTrue(open.decisions.getValue("al-0001").canDecide)
 
             robot.alerts.value = listOf(sampleIncident().copy(acknowledged = true, resolution = IncidentDecision.WAIT))
             val resolved = latest(this)
@@ -154,6 +155,18 @@ class SupervisionViewModelTest {
             assertFalse(resolved.enabled(CommandType.RESOLVE_INCIDENT))
             cancelAndIgnoreRemainingEvents()
         }
+    }
+
+    @Test
+    fun onDecideResolvesTheIncident() = runTest {
+        report(sampleTelemetry(state = RobotState.INCIDENT))
+        robot.alerts.value = listOf(sampleIncident())
+        val viewModel = viewModel()
+        viewModel.onDecide("al-0001", IncidentDecision.SKIP_CHECKPOINT)
+        runCurrent()
+        val sent = robot.commands.value.single().command
+        assertEquals(CommandType.RESOLVE_INCIDENT, sent.type)
+        assertEquals(mapOf("alertId" to "al-0001", "decision" to "SKIP_CHECKPOINT"), sent.params)
     }
 
     @Test

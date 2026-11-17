@@ -19,7 +19,9 @@ import com.vigia.domain.rules.Freshness
 import com.vigia.domain.rules.IncidentRules
 import com.vigia.presentation.CommandStatusUi
 import com.vigia.presentation.FacilityMapState
+import com.vigia.presentation.IncidentDecisionUi
 import com.vigia.presentation.StatusTone
+import com.vigia.presentation.incidentDecisions
 import com.vigia.presentation.toStatusUi
 
 const val WEAK_SIGNAL_RSSI = -75
@@ -53,6 +55,8 @@ data class SupervisionUiState(
     val peopleTone: StatusTone,
     val doorsTone: StatusTone,
     val openIncident: Alert?,
+    // Por id de alerta, para que el diálogo siga abierto hasta ver la confirmación
+    val decisions: Map<String, IncidentDecisionUi>,
     val map: FacilityMapState,
     val commands: Map<CommandType, CommandUi>,
     val canChooseRoute: Boolean,
@@ -115,6 +119,7 @@ fun supervisionState(
         peopleTone = tone(if ((service?.peopleInRestrictedZone ?: 0) > 0) StatusTone.ERROR else StatusTone.NEUTRAL),
         doorsTone = tone(if ((service?.openDoors ?: 0) > 0) StatusTone.WARNING else StatusTone.NEUTRAL),
         openIncident = incident,
+        decisions = incidentDecisions(telemetry?.state, alerts, commands),
         map = FacilityMapState(
             routeId = telemetry?.mission?.routeId,
             verifiedIds = telemetry?.mission?.verifiedIds().orEmpty(),

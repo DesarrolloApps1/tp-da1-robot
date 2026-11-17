@@ -7,8 +7,10 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.vigia.di.appContainer
 import com.vigia.domain.model.Clock
 import com.vigia.domain.model.CommandType
+import com.vigia.domain.model.IncidentDecision
 import com.vigia.domain.model.SystemClock
 import com.vigia.domain.repository.RobotRepository
+import com.vigia.presentation.resolveIncidentParams
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -43,6 +45,10 @@ class SupervisionViewModel(
 
     fun onCommand(type: CommandType, params: Map<String, String> = emptyMap()) {
         viewModelScope.launch { repository.send(type, params) }
+    }
+
+    fun onDecide(alertId: String, decision: IncidentDecision) {
+        onCommand(CommandType.RESOLVE_INCIDENT, resolveIncidentParams(alertId, decision))
     }
 
     companion object {

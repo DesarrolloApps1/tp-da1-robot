@@ -38,6 +38,7 @@ import com.vigia.domain.model.Alert
 import com.vigia.domain.model.AlertKind
 import com.vigia.domain.model.AlertSeverity
 import com.vigia.domain.model.CommandType
+import com.vigia.domain.model.IncidentDecision
 import com.vigia.domain.model.MissionProgress
 import com.vigia.domain.model.Pose
 import com.vigia.domain.model.RobotState
@@ -51,6 +52,7 @@ import com.vigia.presentation.supervision.SupervisionViewModel
 import com.vigia.presentation.supervision.supervisionState
 import com.vigia.ui.components.ConfirmDialog
 import com.vigia.ui.components.FacilityMap
+import com.vigia.ui.components.IncidentDecisionDialog
 import com.vigia.ui.components.StatusChip
 import com.vigia.ui.components.TelemetryCard
 import com.vigia.ui.theme.StatusColors
@@ -71,12 +73,23 @@ fun SupervisionScreen(
     viewModel: SupervisionViewModel = viewModel(factory = SupervisionViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    SupervisionContent(state, onCommand = { viewModel.onCommand(it) }, onChooseRoute = onChooseRoute)
+    SupervisionContent(
+        state,
+        onCommand = { viewModel.onCommand(it) },
+        onDecide = viewModel::onDecide,
+        onChooseRoute = onChooseRoute,
+    )
 }
 
 @Composable
-fun SupervisionContent(state: SupervisionUiState, onCommand: (CommandType) -> Unit, onChooseRoute: () -> Unit) {
+fun SupervisionContent(
+    state: SupervisionUiState,
+    onCommand: (CommandType) -> Unit,
+    onDecide: (String, IncidentDecision) -> Unit,
+    onChooseRoute: () -> Unit,
+) {
     var confirming by rememberSaveable { mutableStateOf<CommandType?>(null) }
+    var deciding by rememberSaveable { mutableStateOf<String?>(null) }
     val request: (CommandType) -> Unit = { type ->
         if (CommandRules.requiresConfirmation(type)) confirming = type else onCommand(type)
     }
@@ -88,7 +101,7 @@ fun SupervisionContent(state: SupervisionUiState, onCommand: (CommandType) -> Un
         ) {
             if (state.stale) StaleBanner(state.ageSeconds)
             ConnectionRow(state)
-            state.openIncident?.let { IncidentCard(it) }
+            state.openIncident?.let { alert -> IncidentBanner(alert) { deciding = alert.id } }
             state.batteryWarning?.let { level ->
                 BatteryWarningCard(level, state.command(CommandType.RETURN_TO_BASE)) { request(CommandType.RETURN_TO_BASE) }
             }
@@ -96,6 +109,10 @@ fun SupervisionContent(state: SupervisionUiState, onCommand: (CommandType) -> Un
             TelemetryGrid(state)
         }
         CommandBar(state.commands, state.state, state.canChooseRoute, onCommand = request, onChooseRoute = onChooseRoute)
+    }
+
+    deciding?.let { state.decisions[it] }?.let { ui ->
+        IncidentDecisionDialog(ui, onDecide = { onDecide(ui.alert.id, it) }, onDismiss = { deciding = null })
     }
 
     confirming?.let { type ->
@@ -142,10 +159,19 @@ private fun ConnectionRow(state: SupervisionUiState) {
     }
 }
 
-// PR 7 suma la decisión desde acá; por ahora solo se avisa
+// El robot está detenido esperando: el banner lleva directo al diálogo de decisión
 @Composable
-private fun IncidentCard(alert: Alert) {
-    Notice("Incidente: ${alert.message} (${alert.zone}). Esperando tu decisión.", StatusColors.error)
+private fun IncidentBanner(alert: Alert, onDecide: () -> Unit) {
+    Notice("Incidente: requiere tu decisión", StatusColors.error) {
+        Text("${alert.message} (${alert.zone})", style = MaterialTheme.typography.bodySmall)
+        Button(
+            onClick = onDecide,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = StatusColors.error,
+                contentColor = MaterialTheme.colorScheme.background,
+            ),
+        ) { Text("Decidir") }
+    }
 }
 
 // Escenario 2: aviso de batería con acceso directo a volver a la base
@@ -307,6 +333,7 @@ private fun SupervisionPreview() {
             SupervisionContent(
                 supervisionState(previewTelemetry, 10_000, emptyList(), emptyList(), now = 11_000),
                 onCommand = {},
+                onDecide = { _, _ -> },
                 onChooseRoute = {},
             )
         }
@@ -323,6 +350,7 @@ private fun SupervisionStaleLowBatteryPreview() {
             SupervisionContent(
                 supervisionState(telemetry, 10_000, listOf(alert), emptyList(), now = 22_000),
                 onCommand = {},
+                onDecide = { _, _ -> },
                 onChooseRoute = {},
             )
         }
