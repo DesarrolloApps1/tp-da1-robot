@@ -773,6 +773,19 @@ def supervision(sid, t, overlay=None):
     return out
 
 
+def robot_card(x, y, w, name, note, available):
+    """RobotItem: los robots no disponibles quedan atenuados y sin acción, con el motivo a la vista."""
+    label, tone = ("Disponible", "ok") if available else ("No disponible", "stale")
+    cw = tw(label, 12, 500) + 20
+    tx, tw_ = x + 16, w - 32 - cw - 12
+    t1, h1 = para(tx, y + 16, name, "titleMedium", C["ink"], tw_)
+    t2, h2 = para(tx, y + 16 + h1 + 2, "Unitree Go2", "bodySmall", C["muted"], tw_)
+    t3, h3 = para(tx, y + 16 + h1 + 2 + h2 + 2, note, "bodySmall", C["ink"], tw_)
+    h = 16 + h1 + 2 + h2 + 2 + h3 + 16
+    chip, _ = status_chip(x + w - 16, y + h / 2 - 11, label, tone, "end")
+    return g([card(x, y, w, h), t1, t2, t3, chip], "Robot/" + name, opacity=None if available else 0.55), h
+
+
 # ----------------------------------------------------------- A. Ingreso ------
 @screen("01", "seleccion-de-robot", "Selección de robot · Vigía-02 deshabilitado", "A · Ingreso")
 def s_robot_select(sid):
@@ -781,22 +794,8 @@ def s_robot_select(sid):
     col.add(lambda y: para(16, y, "Selección de robot", "headlineSmall", C["ink"]))
     col.add(lambda y: para(16, y, "Elegí el robot que vas a supervisar en la ronda.", "bodyMedium", C["muted"]))
 
-    def robot(name, note, available):
-        def fn(y):
-            label, tone = ("Disponible", "ok") if available else ("No disponible", "stale")
-            cw = tw(label, 12, 500) + 20
-            tx, tw_ = 32, 328 - 32 - cw - 12
-            inner = []
-            t1, h1 = para(tx, y + 16, name, "titleMedium", C["ink"], tw_)
-            t2, h2 = para(tx, y + 16 + h1 + 2, "Unitree Go2", "bodySmall", C["muted"], tw_)
-            t3, h3 = para(tx, y + 16 + h1 + 2 + h2 + 2, note, "bodySmall", C["ink"], tw_)
-            h = 16 + h1 + 2 + h2 + 2 + h3 + 16
-            chip, _ = status_chip(328, y + h / 2 - 11, label, tone, "end")
-            inner += [card(16, y, 328, h), t1, t2, t3, chip]
-            return g(inner, f"Robot/{name}", opacity=None if available else 0.55), h
-        return fn
-    col.add(robot("Vigía-01", "Simulado", True))
-    col.add(robot("Vigía-02", "Fuera de servicio: batería en mantenimiento", False))
+    col.add(lambda y: robot_card(16, y, 328, "Vigía-01", "Simulado", True))
+    col.add(lambda y: robot_card(16, y, 328, "Vigía-02", "Fuera de servicio: batería en mantenimiento", False))
     return out + col.out + [gesture_bar()]
 
 
@@ -1374,7 +1373,191 @@ def board_flow_failure():
     return svg_doc(1500, 1360, "".join(out), BOARD_BG, "Flujo con falla")
 
 
+# --------------------------------------------------------- sistema de diseño
+def not_applicable(msg):
+    return lambda x, y: para(x, y, msg, "bodyMedium", C["grey"], 340, italic=True)
+
+
+def slots_cell(slots):
+    def fn(x, y):
+        parts = [command_slot(x + i * 120, y, 112, s) for i, s in enumerate(slots)]
+        return g([p for p, _ in parts], "Órdenes"), max(h for _, h in parts)
+    return fn
+
+
+def chips_cell(chips):
+    def fn(x, y):
+        out, cy = [], y
+        for label, tone in chips:
+            chip, _ = status_chip(x, cy, label, tone)
+            out.append(chip)
+            cy += 30
+        return g(out, "Chips"), cy - 8 - y
+    return fn
+
+
+def tcard_cell(**c):
+    def fn(x, y):
+        h = telemetry_card_h(170, **c)
+        return telemetry_card(x, y, 170, h, **c), h
+    return fn
+
+
+def stop_cell(**kw):
+    return lambda x, y: hold_to_stop(x, y, 340, **kw)
+
+
+def notice_cell(msg, color, bg=None, bg_opacity=0.12, action=None):
+    actions = [btn_item(action, color=color)] if action else None
+    return lambda x, y: notice(x, y, 340, msg, color, bg, bg_opacity, actions)
+
+
+def dialog_cell(scale, *args, **kw):
+    def fn(x, y):
+        box, h = dialog_box(*args, x=0, **kw)
+        return g(box, transform=f"translate({x} {y}) scale({scale})"), h * scale
+    return fn
+
+
+def robot_cell(name, note, available):
+    return lambda x, y: robot_card(x, y, 340, name, note, available)
+
+
+def board_system():
+    out = board_head("Sistema de diseño · Vigía",
+                     "Tema oscuro de la app (ui/theme/Theme.kt): el guardia trabaja de noche en una central con poca "
+                     "luz. El color siempre va acompañado de texto.")
+    # colores
+    out.append(section_label(60, 190, "Color"))
+    swatches = [("navy", "Navy", "Fondo"), ("surface", "NavySurface", "Barras y hojas"),
+                ("raised", "NavyRaised", "Tarjetas y plano"), ("line", "Line", "Bordes"), ("ink", "Ink", "Texto"),
+                ("muted", "Muted", "Texto secundario"), ("blue", "Blue", "Primario, ruta"),
+                ("blueDeep", "BlueDeep", "Tonal, pestaña activa"), ("green", "ok", "Normal"),
+                ("amber", "warning", "Advertencia"), ("red", "error", "Error, STOP"), ("grey", "stale", "Datos antiguos")]
+    for i, (k, name, use) in enumerate(swatches):
+        x = 60 + i * 148
+        out += [rect(x, 210, 128, 72, 12, C[k], C["line"]), text(x, 306, name, 14, 600, C["ink"]),
+                text(x, 324, C[k].upper(), 12, 500, C["muted"], MONO), text(x, 342, use, 12, 400, C["muted"])]
+    out.append(text(60 + 8 * 148, 372, "StatusColors: el mismo significado en todas las pantallas", 12, 500, C["muted"]))
+    # tipografía
+    out.append(section_label(60, 430, "Tipografía"))
+    ty = [("headlineSmall · Inter 24", "headlineSmall", "Selección de robot"),
+          ("titleLarge · Inter 22", "titleLarge", "Patrullando"),
+          ("titleMedium · Inter 16 / 500", "titleMedium", "Rondas disponibles"),
+          ("titleSmall · Inter 14 / 500", "titleSmall", "Mantené apretado 1,5 s para detener"),
+          ("bodyMedium · Inter 14", "bodyMedium", "El robot interrumpe lo que está haciendo y regresa a la base de carga."),
+          ("bodySmall · Inter 12", "bodySmall", "Detención simulada por software. No reemplaza la parada de emergencia física."),
+          ("labelMedium · Inter 12 / 500", "labelMedium", "Última actualización")]
+    y = 460
+    for label, style, sample in ty:
+        size, lh, _ = T[style]
+        out += [text(60, y + lh / 2 + 5, label, 13, 500, C["muted"]), para(330, y, sample, style, C["ink"], 620)[0]]
+        y += lh + 14
+    out += [text(60, y + 19, "Números · JetBrains Mono 20 / 500", 13, 500, C["muted"]),
+            text(330, y + 21, "64 %   0,8 m/s   3/8   02:45:10", 20, 500, C["ink"], MONO)]
+    # plano
+    out.append(section_label(1100, 430, "Plano (Facility.kt, 40 × 20 m)"))
+    m, mh = facility_map("ds-map", 1100, 450, 400, "ronda-completa", {"CP1", "CP2", "CP3"}, "CP4", (24.0, 5.0, 350))
+    out.append(m)
+    ly = 450 + mh + 30
+    legend = [(rect(1100, ly - 10, 10, 10, 0, C["blue"]), "Base de carga"),
+              (circle(1105, ly - 5, 5, C["green"]), "Punto verificado"),
+              (circle(1105, ly - 5, 5, "none", C["ink"], 1.5), "Punto pendiente de la ruta"),
+              (circle(1105, ly - 5, 7, "none", C["blue"], 1.5), "Punto al que va el robot"),
+              (circle(1105, ly - 5, 6, C["blue"]), "Robot y rumbo"),
+              (rect(1099, ly - 11, 12, 12, 0, "none", C["red"], 1.5, dash="3 2"), "Zona restringida")]
+    for i, (mark, label) in enumerate(legend):
+        lx, dy = (0 if i < 3 else 230), (i % 3) * 26
+        out.append(g(mark, transform=f"translate({lx} {dy})"))
+        out.append(text(1100 + lx + 20, ly + dy, label, 13, 400, C["muted"]))
+    out.append(text(1100, ly + 82, "Sin datos recientes todo el plano pasa a gris (frame 10).", 13, 400, C["muted"]))
+
+    # componentes x estados
+    top = 920
+    out.append(section_label(60, top, "Componentes y estados"))
+    cols_x = [340, 740, 1140, 1540]
+    heads = ["Normal", "Deshabilitado o datos antiguos", "Advertencia", "Error"]
+    head_col = [C["green"], C["grey"], C["amber"], C["red"]]
+    for x, h_, col in zip(cols_x, heads, head_col):
+        out += [rect(x, top + 24, 360, 4, 2, col), text(x, top + 50, h_, 15, 700, col)]
+    rows = [
+        ("Botón de orden", "CommandSlot: motivo si está deshabilitado, aviso si no hay datos y estado de la última orden.", [
+            slots_cell([slot("Pausar"), slot("Cancelar", "danger"), slot("Volver a la base", "tonal")]),
+            slots_cell([slot("Pausar", enabled=False, reason="Solo se puede pausar durante la patrulla"),
+                        slot("Cancelar", "danger", False, "No hay una misión en curso"),
+                        slot("Volver a la base", "tonal", False, "El robot ya está en la base")]),
+            slots_cell(stale_slots(PATROL["slots"])),
+            slots_cell([slot("Pausar"), slot("Cancelar", "danger"),
+                        slot("Volver a la base", "tonal", status=("Rechazada: Camino bloqueado", "error"))]),
+        ]),
+        ("Chip de estado", "StatusChip: estado de una orden o de la conexión. Pendiente es neutro.", [
+            chips_cell([("Conectado", "ok"), ("Pendiente", "neutral"), ("Confirmada", "ok")]),
+            chips_cell([("Sin datos", "stale"), ("No disponible", "stale")]),
+            chips_cell([("Señal débil", "warning"), ("Sin respuesta", "warning"), ("Advertencia", "warning")]),
+            chips_cell([("Rechazada: Camino bloqueado", "error"), ("Sin datos", "error"), ("Crítica", "error")]),
+        ]),
+        ("Tarjeta de telemetría", "TelemetryCard: el valor toma el color del estado; con datos viejos, todo gris.", [
+            tcard_cell(title="Batería", value="64 %", detail="72 min restantes", tone="ok", mono=True),
+            tcard_cell(title="Batería", value="64 %", detail="72 min restantes", tone="stale", mono=True),
+            tcard_cell(title="Batería", value="22 %", detail="26 min restantes", tone="warning", mono=True),
+            tcard_cell(title="Estado", value="Incidente", tone="error"),
+        ]),
+        ("Detención mantenida", "HoldToStopButton: 1,5 s apretado; el anillo muestra el avance.", [
+            stop_cell(progress=0.62, touch=True),
+            not_applicable("No se deshabilita nunca: la detención siempre se puede mandar."),
+            stop_cell(warning=STALE_WARNING, status=("Sin respuesta", "warning")),
+            not_applicable("No tiene rechazo: como mucho queda sin respuesta."),
+        ]),
+        ("Aviso y banner", "Notice: el color marca la gravedad y el texto la explica.", [
+            not_applicable("Sin aviso: solo aparece cuando hace falta actuar."),
+            notice_cell("Sin datos hace 12 s. Las órdenes pueden no llegar", C["red"], C["grey"], 0.2),
+            notice_cell("Batería baja: conviene volver a la base.", C["amber"], action="Volver a la base"),
+            notice_cell("Incidente: requiere tu decisión", C["red"], action="Decidir"),
+        ]),
+        ("Tarjeta de robot", "RobotItem: el no disponible queda atenuado, sin acción y con el motivo.", [
+            robot_cell("Vigía-01", "Simulado", True),
+            robot_cell("Vigía-02", "Fuera de servicio: batería en mantenimiento", False),
+            not_applicable("No aplica."),
+            not_applicable("No aplica."),
+        ]),
+        ("Diálogo de decisión", "IncidentDecisionDialog: se elige primero y se envía aparte.", [
+            dialog_cell(0.9, "Obstáculo en el camino", [p_item("Obstáculo bloquea el paso · Pasillo B"),
+                                                         decision_options(OBSTACLE_OPTIONS, "Saltear el punto")],
+                        "Enviar decisión", "Más tarde", warn_icon=True),
+            dialog_cell(0.9, "Obstáculo en el camino", [p_item("Obstáculo bloquea el paso · Pasillo B"),
+                                                         decision_options(OBSTACLE_OPTIONS)],
+                        "Enviar decisión", "Más tarde", warn_icon=True, confirm_enabled=False),
+            not_applicable("Si la decisión queda sin respuesta, el chip ámbar aparece debajo de las opciones."),
+            not_applicable("Si el robot la rechaza, el chip rojo dice el motivo."),
+        ]),
+    ]
+    y = top + 80
+    for name, desc, cells in rows:
+        parts = [text(60, y + 18, name, 16, 700, C["ink"]),
+                 text(60, y + 42, "\n".join(wrap(desc, 13, 250)), 13, 400, C["muted"], lh=19)]
+        hmax = 0
+        for x, cell in zip(cols_x, cells):
+            svg, h = cell(x, y)
+            parts.append(svg)
+            hmax = max(hmax, h)
+        hmax = max(hmax, 42 + 19 * len(wrap(desc, 13, 250)))
+        out.append(g(parts, "Fila/" + name))
+        y += hmax + 28
+        out.append(line(60, y - 14, 1900, y - 14, C["line"], 1, opacity=0.6))
+    # forma y espacio
+    out.append(section_label(60, y + 30, "Forma y espacio"))
+    spec = [("Grilla", "Márgenes de 16 dp, separación de 12 dp entre bloques y 8 dp entre tarjetas."),
+            ("Radios", "Tarjetas y plano 12 dp, diálogos y hojas 28 dp, botones y chips en píldora."),
+            ("Objetivos táctiles", "Botones de 40 dp de alto; STOP de 72 dp, separado y en rojo."),
+            ("Órdenes peligrosas", "Cancelar y Volver a la base piden confirmación; detener se mantiene 1,5 s.")]
+    for i, (a_, b_) in enumerate(spec):
+        x = 60 + i * 470
+        out += [text(x, y + 66, a_, 15, 700, C["ink"]), text(x, y + 90, "\n".join(wrap(b_, 13, 430)), 13, 400, C["muted"], lh=19)]
+    return svg_doc(1960, y + 150, "".join(out), BOARD_BG, "Sistema de diseño")
+
+
 BOARDS = [  # (slug, título, fn)
+    ("00-sistema-de-diseno", "Sistema de diseño", board_system),
     ("00-mapa-de-navegacion", "Mapa de navegación", board_navigation),
     ("00-flujo-normal", "Flujo normal", board_flow_normal),
     ("00-flujo-con-falla", "Flujo con falla", board_flow_failure),
