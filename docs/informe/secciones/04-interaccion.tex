@@ -1,0 +1,37 @@
+\section{Actores e interacción}
+\label{sec:interaccion}
+
+\subsection{Roles}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{@{}l L L@{}}
+\toprule
+\textbf{Rol} & \textbf{Qué necesita saber} & \textbf{Cuándo interviene} \\
+\midrule
+Guardia de la central & Dónde está el robot, qué puntos verificó, si hay alertas abiertas y si los datos están al día & Inicia la ronda, decide ante un incidente, reconoce alertas, manda el robot a la base \\
+Jefe de seguridad & Qué rondas se hicieron, cuándo y qué pasó en cada una & Al día siguiente, revisando el historial \\
+Personas en el edificio & Qué es el robot y qué tienen que hacer cuando lo cruzan & Cuando se lo encuentran en un pasillo o en una zona restringida \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{HMI: lo que ve el guardia}
+
+La pantalla principal es la de supervisión. Arriba está el estado de la conexión con la hora del último dato; en el centro, el plano con la ruta, los puntos ya verificados y la posición del robot; abajo, las órdenes disponibles. Cada orden muestra si se puede usar y, si no, por qué.
+
+Usamos tema oscuro por defecto. El guardia trabaja de noche en una central con poca luz y una pantalla blanca encandila. Los colores tienen un solo significado en toda la app: verde para lo normal, ámbar para advertencias, rojo para errores y gris para datos viejos.
+
+\subsection{HRI: lo que ven las personas que se cruzan con el robot}
+
+El robot no está pensado para hablar con la gente, pero se la va a cruzar: personal de limpieza, un docente que se quedó tarde, alguien de mantenimiento. Para esos casos definimos un comportamiento fijo:
+
+\begin{itemize}
+  \item Si detecta a una persona en un lugar de paso, se detiene a dos metros, le da paso y sigue.
+  \item Si la persona está en una zona restringida, se detiene a distancia y dice por el parlante: ``Zona restringida. Seguridad fue notificada''. No la sigue ni la encierra.
+  \item El robot nunca toma decisiones sobre la persona. Avisa y es el guardia quien la clasifica.
+\end{itemize}
+
+\subsection{Cuándo tiene que intervenir un humano}
+
+El robot sigue la ronda solo, pero frena y espera al guardia en cuatro situaciones: algo le bloquea el camino, detecta a una persona en una zona restringida, la batería baja del umbral crítico o pierde la conexión por más de un minuto. En este último caso no puede esperar a nadie, así que vuelve solo a la base.

@@ -1,0 +1,31 @@
+\section{Escenarios y riesgos}
+\label{sec:escenarios}
+
+\subsection{Los cinco escenarios de la demo}
+
+Todos se pueden reproducir desde el panel de simulación de la app, sin robot ni internet.
+
+\begin{enumerate}
+  \item \textbf{Ronda normal.} El guardia inicia la ronda completa. El robot pasa por los ocho puntos, el contador de verificados sube de a uno y al final vuelve a la base. Queda registrada en el historial.
+  \item \textbf{Batería baja.} Con la batería en 24~\% aparece una advertencia con el botón ``Volver a la base'' a mano. Debajo del 15~\% el robot pide volver por su cuenta y la app no deja reanudar.
+  \item \textbf{Desconexión.} Se corta la conexión desde el panel. Los datos quedan en gris con su antigüedad, la orden que se mande queda sin respuesta y, al reconectar, todo se pone al día. Si el corte supera el minuto, el robot vuelve solo a la base.
+  \item \textbf{Incidente.} Una silla bloquea el pasillo B. El robot frena, pasa a incidente y el guardia elige: esperar a que alguien la saque, saltear ese punto o mandarlo a la base.
+  \item \textbf{Persona en zona restringida.} Son las 3 de la mañana y el robot detecta a alguien en el laboratorio. Se detiene a distancia, avisa por el parlante y el guardia decide si es un intruso (y sigue el procedimiento de seguridad), un empleado autorizado o una falsa alarma. La decisión queda en el historial.
+\end{enumerate}
+
+\subsection{Riesgos y medidas}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{@{}L L@{}}
+\toprule
+\textbf{Riesgo} & \textbf{Medida} \\
+\midrule
+El robot se acerca demasiado a una persona o la asusta & Velocidad tope de 0,8~m/s, se detiene a 2~m de cualquier persona y le da paso. En zonas restringidas avisa por el parlante en lugar de acercarse \\
+El guardia cancela o detiene por error & Cancelar pide confirmación. Detener exige mantener apretado. Los dos botones están separados del resto y tienen otro color \\
+Se pierde la conexión y el guardia sigue mirando datos viejos & Los datos se marcan como antiguos con su edad, las órdenes muestran ``sin respuesta'' y el robot vuelve solo a la base si el corte supera el minuto \\
+Se vulnera la privacidad de quien aparece en las rondas & No hay reconocimiento facial ni se guardan imágenes. El historial guarda zona, hora y la clasificación del guardia, nada más \\
+El guardia se cansa de falsas alarmas y deja de prestarles atención & Las alertas tienen severidad y hay que reconocerlas. Las clasificadas como falsa alarma quedan registradas para ajustar la ruta o el sensor \\
+\bottomrule
+\end{tabularx}
+\end{table}

@@ -1,0 +1,28 @@
+\section{Decisiones y limitaciones}
+\label{sec:decisiones}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{@{}L L@{}}
+\toprule
+\textbf{Decisión} & \textbf{Por qué} \\
+\midrule
+Órdenes discretas en lugar de joystick & El guardia supervisa una ronda, no maneja un vehículo. Un joystick invita a manejar a distancia y suma riesgo \\
+Tema oscuro por defecto & La central está en penumbra durante toda la jornada \\
+Detener con pulsación sostenida & Es la orden que más conviene que llegue y la que menos conviene mandar por un toque accidental \\
+El repositorio simulado habla JSON & Así el contrato se prueba en la app y no queda solo en el documento \\
+Inyección manual con un \texttt{AppContainer} & Para el tamaño de la app alcanza; Hilt sumaría configuración sin aportar \\
+Sin imágenes en el historial & Privacidad de las personas que aparecen en las rondas \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Limitaciones}
+
+\begin{itemize}
+  \item No hay robot ni gateway: todo el comportamiento lo genera el simulador, con reglas simples y deterministas.
+  \item La detección de personas y de puertas abiertas se simula. En un robot real haría falta un modelo de visión propio.
+  \item El plano es una simplificación de una planta baja; no corresponde a la planta real de la sede.
+  \item Hay un solo operador. No contemplamos dos guardias mandando órdenes al mismo robot.
+  \item \pendiente{completar con lo que surja durante la implementación}
+\end{itemize}

@@ -1,0 +1,93 @@
+\section{Arquitectura del APK}
+\label{sec:arquitectura}
+
+La app está hecha con Kotlin y Jetpack Compose, siguiendo MVVM. La UI observa un \texttt{StateFlow} que expone cada ViewModel y le manda eventos; nunca toca el simulador. Entre el ViewModel y el simulador hay un \texttt{RobotRepository}, que es la única puerta a la telemetría, las órdenes y los eventos. El día que exista un gateway real, se escribe otra implementación de esa interfaz y el resto de la app no cambia.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  caja/.style={draw=noche,fill=fondo,rounded corners=2pt,thick,minimum width=3.1cm,minimum height=0.9cm,font=\small,align=center},
+  flecha/.style={-{Stealth[length=2mm]},thick,gris}]
+  \node[caja] (ui) {Pantallas Compose};
+  \node[caja,right=1.1cm of ui] (vm) {ViewModels\\\scriptsize StateFlow<UiState>};
+  \node[caja,right=1.1cm of vm] (repo) {RobotRepository\\\scriptsize interfaz};
+  \node[caja,below=1.1cm of repo] (sim) {SimulatedRobotRepository\\\scriptsize JSON};
+  \node[caja,below=1.1cm of sim] (motor) {RobotSimulator\\\scriptsize tick de 1 s};
+  \node[caja,below=1.1cm of vm] (hist) {HistoryRepository};
+  \node[caja,below=1.1cm of hist] (room) {Room\\\scriptsize rondas y eventos};
+  \draw[flecha] (ui) -- node[above,font=\scriptsize]{eventos} (vm);
+  \draw[flecha] (vm.north west) to[bend right=25] node[above,font=\scriptsize]{estado} (ui.north east);
+  \draw[flecha] (vm) -- (repo);
+  \draw[flecha] (repo) -- (sim);
+  \draw[flecha] (sim) -- (motor);
+  \draw[flecha] (vm) -- (hist);
+  \draw[flecha] (hist) -- (room);
+\end{tikzpicture}
+\caption{Capas de la app. Las flechas indican quién conoce a quién.}
+\label{fig:arquitectura}
+\end{figure}
+
+\begin{lstlisting}
+com.vigia
+ |- domain/model       telemetría, estados, misión, alertas, órdenes
+ |- domain/rules       habilitación de órdenes, umbrales de batería, antigüedad
+ |- domain/repository  interfaces RobotRepository y HistoryRepository
+ |- data/contract      DTOs del contrato JSON y mappers
+ |- data/sim           simulador, repositorio simulado, controles de simulación
+ |- data/local         Room: base, entidades y DAOs
+ |- presentation       ViewModels y UiState
+ |- ui                 pantallas, componentes, tema y navegación
+ |- di                 AppContainer (inyección manual)
+\end{lstlisting}
+
+\subsection{Simulador}
+
+El simulador corre en una corrutina con un tick de un segundo y un multiplicador (x1 o x5) para que las demos no duren lo mismo que una ronda real. En cada tick mueve el robot sobre la ruta a 0,8~m/s, descuenta batería, se detiene unos segundos en cada punto de control y lo marca como verificado. Desde el panel de simulación se le puede cortar la conexión, pedir que rechace la próxima orden, bajar la batería o provocar un obstáculo, una puerta abierta o una persona en zona restringida. Nada de esto necesita internet.
+
+\subsection{Persistencia}
+
+El historial de rondas y eventos se guarda en Room. Elegimos Room porque son registros con estructura fija que se consultan por fecha y por ronda, y porque ya lo usamos en la materia. El historial no guarda imágenes ni datos de personas (ver la sección~\ref{sec:escenarios}).
+
+\subsection{Contrato de mensajes propuesto}
+\label{sec:contrato}
+
+Este contrato es una propuesta nuestra para un gateway propio entre la app y el robot. No es el protocolo oficial de Unitree. El repositorio simulado lo usa de verdad: serializa cada orden a JSON y parsea la telemetría que le devuelve el simulador.
+
+\textbf{Telemetría}
+\begin{lstlisting}
+{
+  "type": "telemetry", "robotId": "go2-vigia-01", "seq": 1532,
+  "timestamp": "2026-11-16T03:14:05Z",
+  "connection": { "rssi": -62, "latencyMs": 85 },
+  "battery": { "percent": 64, "minutesLeft": 72, "charging": false },
+  "state": "PATROLLING",
+  "mission": { "id": "m-0007", "routeId": "ronda-completa", "progress": 0.42,
+               "currentCheckpoint": "CP4", "checkpointsVerified": 3, "checkpointsTotal": 8 },
+  "pose": { "x": 18.4, "y": 6.2, "heading": 90, "zone": "Laboratorio de informática" },
+  "motion": { "speed": 0.8, "moving": true },
+  "service": { "checkpointsVerified": 3, "peopleInRestrictedZone": 0, "openDoors": 1 }
+}
+\end{lstlisting}
+
+\textbf{Orden y respuestas}
+\begin{lstlisting}
+{ "type": "command", "commandId": "cmd-0042", "robotId": "go2-vigia-01",
+  "command": "START_MISSION", "params": { "routeId": "ronda-completa" },
+  "issuedAt": "2026-11-16T03:10:00Z" }
+
+{ "type": "command_ack", "commandId": "cmd-0042", "result": "ACCEPTED",
+  "reason": null, "respondedAt": "2026-11-16T03:10:01Z" }
+
+{ "type": "command_ack", "commandId": "cmd-0043", "result": "REJECTED",
+  "reason": "BATTERY_TOO_LOW", "respondedAt": "2026-11-16T03:10:02Z" }
+\end{lstlisting}
+
+\textbf{Alerta}
+\begin{lstlisting}
+{ "type": "alert", "alertId": "al-77", "severity": "CRITICAL",
+  "kind": "PERSON_IN_RESTRICTED_ZONE", "zone": "Laboratorio de informática",
+  "message": "Persona detectada en zona restringida",
+  "raisedAt": "2026-11-16T03:14:02Z", "requiresDecision": true }
+\end{lstlisting}
+
+Si pasan 5~segundos sin un \texttt{command\_ack}, la app marca la orden como sin respuesta. No se reintenta sola: el guardia decide si la vuelve a mandar.

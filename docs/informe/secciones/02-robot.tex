@@ -1,0 +1,43 @@
+\section{Elección del robot}
+\label{sec:robot}
+
+\subsection{Go2 frente a G1}
+
+La ronda pide caminar varias horas por pasillos, pasar umbrales y algún escalón bajo, y mirar alrededor. No pide agarrar ni mover objetos. Para eso el Go2 alcanza y sobra: es más chico, más estable sobre cuatro patas y bastante más barato que el G1. Los brazos del humanoide no se usarían, y un robot de altura humana caminando de noche por un pasillo asusta más que un cuadrúpedo del tamaño de un perro grande.
+
+\subsection{Qué trae el Go2}
+
+Unitree vende el Go2 en tres versiones: AIR, PRO y EDU. Para este servicio haría falta la EDU, que es la única que habilita el SDK para mandarle órdenes desde un sistema propio.
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Aspecto} & \textbf{Lo que usamos del Go2} \\
+\midrule
+Sensores & LiDAR 4D en la cabeza y cámara frontal. Con eso detecta obstáculos y arma el mapa del piso. \\
+Movilidad & Camina en interiores, sube escalones bajos y se recupera si lo empujan. Para la ronda limitamos la velocidad a 0,8~m/s. \\
+Autonomía & Del orden de una a dos horas según la batería y el uso \pendiente{verificar con la hoja técnica}. Una ronda completa dura unos 15 minutos, así que entran varias por carga. \\
+Comunicación & WiFi. La app no le habla directo: pasa por un gateway propio en la red del edificio. \\
+Interacción & Parlante y luces en algunas versiones, que usamos para avisar a las personas que se cruza. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Qué existe y qué habría que desarrollar}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{@{}L L@{}}
+\toprule
+\textbf{Disponible} & \textbf{Requiere equipamiento o desarrollo extra} \\
+\midrule
+Locomoción, mapeo y evitación de obstáculos & Detectar si una puerta quedó abierta (modelo de visión propio) \\
+SDK de la versión EDU para órdenes de alto nivel & Gateway entre la app y el robot, con autenticación y registro \\
+Cámara y LiDAR para detectar que hay alguien & Decidir si esa persona está o no autorizada (eso lo decide el guardia) \\
+Batería intercambiable & Base de carga automática, que se compra a terceros o se reemplaza por un cambio manual de batería \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+En el TP no hay hardware. Todo lo que el robot ``hace'' lo hace un simulador dentro de la app, y el contrato de mensajes que proponemos (sección~\ref{sec:contrato}) es nuestro, no el protocolo oficial de Unitree.
