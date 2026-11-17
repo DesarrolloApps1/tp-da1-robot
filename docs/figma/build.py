@@ -1564,6 +1564,96 @@ BOARDS = [  # (slug, título, fn)
 ]
 
 
+# ================================================================ GALERÍA ====
+# Estado que muestra cada frame y la decisión de diseño detrás (se usa en index.html)
+NOTES = {
+    "01": ("Normal y deshabilitado", "Vigía-02 se ve atenuado y con el motivo escrito. No se puede tocar, así el guardia "
+                                     "no elige un robot que no va a responder."),
+    "02": ("Normal", "Robot en base y cargando. Solo Elegir ronda está habilitada; Cancelar y Volver a la base dicen "
+                     "por qué no se pueden usar."),
+    "03": ("Normal", "Plano con la ruta y los puntos verificados en verde, tarjetas de telemetría y la barra de órdenes "
+                     "siempre abajo. La detención queda separada y en rojo."),
+    "04": ("Confirmación", "Volver a la base corta la ronda, por eso pide confirmación. Descartar queda a la izquierda, "
+                           "lejos de la acción."),
+    "05": ("En progreso", "La detención se mantiene apretada 1,5 s. El anillo muestra cuánto falta y al lado se aclara "
+                          "que es una detención simulada por software."),
+    "06a": ("Pendiente", "La orden queda Pendiente y el botón se deshabilita para no mandarla dos veces."),
+    "06b": ("Confirmada", "Confirmada quiere decir que el robot aceptó la orden. El estado pasa a Regresando y las otras "
+                          "órdenes explican por qué ya no aplican."),
+    "06c": ("Error", "El robot rechazó la orden y el chip dice el motivo. El botón sigue habilitado para volver a intentar."),
+    "06d": ("Advertencia", "Sin acuse a los 5 s la orden queda Sin respuesta, en ámbar. Pasa durante una desconexión."),
+    "07": ("Normal", "Las tres rondas con puntos, metros, duración estimada y recorrido. Iniciar está habilitado porque el "
+                     "robot está en base con batería."),
+    "08": ("Deshabilitado", "Con menos de 30 % de batería Iniciar se deshabilita en las tres rondas. El motivo aparece "
+                            "una sola vez arriba."),
+    "09": ("Advertencia", "Debajo del 25 % aparece el aviso ámbar con Volver a la base a mano, sin buscarlo en la barra."),
+    "10": ("Error y datos antiguos", "Más de 3 s sin datos: banner rojo, plano y tarjetas en gris y la antigüedad a la "
+                                     "vista. Las órdenes siguen visibles pero avisan que pueden no llegar."),
+    "11": ("Normal", "Al volver el enlace todo se actualiza. El chip Sin respuesta de la pausa queda a la vista para que "
+                     "el guardia sepa que no se aplicó."),
+    "12": ("Error", "El robot está detenido esperando. El banner rojo lleva directo al diálogo y Pausar explica por qué "
+                    "no aplica."),
+    "13": ("Decisión", "Cada opción dice qué va a hacer el robot. Se elige primero y se envía aparte para evitar un toque "
+                       "accidental."),
+    "14": ("Decisión, envío deshabilitado", "Muestra lo que dijo el robot por el parlante y la nota de privacidad. Enviar "
+                                            "decisión queda deshabilitado hasta elegir una opción."),
+    "15": ("Normal", "Las activas van arriba, con el borde y el chip del color de la severidad. Las reconocidas y "
+                     "resueltas bajan y se atenúan."),
+    "16": ("Normal", "Rondas guardadas con resultado, puntos verificados, personas y puertas. Borrar historial está en "
+                     "rojo y pide confirmación."),
+    "17": ("Normal", "Al tocar una ronda se abre su línea de tiempo: puntos, alertas, decisiones y órdenes con su hora."),
+    "18": ("Solo demo", "Hoja inferior para forzar los cinco escenarios en la presentación. El guardia no la vería en la "
+                        "app real."),
+}
+
+
+def build_index(path):
+    """Galería autocontenida: los frames van como SVG en línea y los tableros como PNG con link al SVG."""
+    sections = {}
+    for e in SCREENS:
+        sections.setdefault(e[3], []).append(e)
+    parts = []
+    for slug, title, _ in BOARDS:
+        parts.append(f'<h2>{esc(title)}</h2><a class="board" href="boards/{slug}.svg">'
+                     f'<img src="png/{slug}.png" alt="{esc(title)}" loading="lazy"></a>')
+    for sec in sorted(sections):
+        parts.append(f'<h2>{esc(sec)}</h2><div class="grid">')
+        for sid, slug, name, _, fn in sections[sec]:
+            state, why = NOTES[sid]
+            svg = (f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="{esc(name)}">'
+                   f'<rect width="{W}" height="{H}" fill="{C["navy"]}"/>' + "".join(fn(f"g{sid}")) + "</svg>")
+            parts.append(f'<figure id="f{sid}"><a class="phone" href="screens/{sid}-{slug}.svg">{svg}</a><figcaption>'
+                         f'<span class="id">{sid}</span><strong>{esc(name)}</strong>'
+                         f'<span class="state">{esc(state)}</span><p>{esc(why)}</p></figcaption></figure>')
+        parts.append("</div>")
+    css = (":root{--bg:%(navy)s;--card:%(surface)s;--ink:%(ink)s;--muted:%(muted)s;--line:%(line)s;"
+           "--blue:%(blue)s;--deep:%(blueDeep)s}" % C) + """
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:40px 24px}
+header div,main{max-width:1320px;margin:0 auto}h1{font:700 clamp(28px,4vw,44px)/1.1 Inter,sans-serif;margin:0 0 12px}
+header p{max-width:780px;color:var(--muted);margin:0}main{padding:8px 16px 80px}
+h2{font:700 22px Inter,sans-serif;margin:48px 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:28px}
+figure{margin:0}.phone{display:block;border-radius:24px;overflow:hidden;border:1px solid var(--line)}
+.phone svg{display:block;width:100%;height:auto}figcaption{padding:12px 4px 0}figcaption strong{display:block}
+.id{font:600 12px 'JetBrains Mono',monospace;color:var(--blue)}
+.state{display:inline-block;margin:6px 0;padding:2px 10px;border-radius:99px;background:var(--deep);font-size:12px;font-weight:600}
+figcaption p{margin:0;color:var(--muted);font-size:14px}
+.board{display:block;overflow-x:auto;border:1px solid var(--line);border-radius:16px}
+.board img{display:block;width:100%;min-width:1000px;height:auto}
+"""
+    page = ('<!doctype html><html lang="es"><head><meta charset="utf-8">'
+            '<meta name="viewport" content="width=device-width,initial-scale=1"><title>Vigía · Frames para Figma</title>'
+            f'<link rel="stylesheet" href="{esc(FONTS)}"><style>{css}</style></head><body>'
+            '<header><div><h1>Vigía · frames para Figma</h1>'
+            f'<p>{len(SCREENS)} frames Android de 360 × 800 dp y {len(BOARDS)} tableros, generados con build.py a partir '
+            'del tema y las pantallas de la app. Cada frame dice qué estado muestra y por qué está resuelto así. '
+            'Tocá un frame o un tablero para abrir el SVG.</p></div></header>'
+            f'<main>{"".join(parts)}</main></body></html>')
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(page)
+
+
 # ================================================================ SALIDA =====
 
 
@@ -1625,7 +1715,8 @@ def main(png=False):
             f.write(svg)
         bw, bh = (int(float(v)) for v in svg.split('viewBox="0 0 ')[1].split('"')[0].split())
         files.append((p, bw, bh))
-    print(f"{len(SCREENS)} pantallas y {len(BOARDS)} tableros generados")
+    build_index(os.path.join(ROOT, "index.html"))
+    print(f"{len(SCREENS)} pantallas, {len(BOARDS)} tableros e index.html generados")
     if png:
         export_png(files, os.path.join(ROOT, "png"))
 
