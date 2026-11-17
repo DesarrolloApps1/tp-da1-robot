@@ -3,6 +3,7 @@ package com.vigia.fakes
 import com.vigia.domain.model.Alert
 import com.vigia.domain.model.AlertKind
 import com.vigia.domain.model.AlertSeverity
+import com.vigia.domain.model.IncidentDecision
 import com.vigia.domain.model.MissionProgress
 import com.vigia.domain.model.Pose
 import com.vigia.domain.model.RobotState
@@ -40,3 +41,13 @@ fun sampleIncident(id: String = "al-0001") = Alert(
     raisedAtMillis = 0,
     requiresDecision = true,
 )
+
+fun sampleAlert(
+    id: String,
+    kind: AlertKind,
+    raisedAtMillis: Long,
+    severity: AlertSeverity = AlertSeverity.WARNING,
+    requiresDecision: Boolean = false,
+    acknowledged: Boolean = false,
+    resolution: IncidentDecision? = null,
+) = Alert(id, severity, kind, "Pasillo B", "Alerta de prueba", raisedAtMillis, requiresDecision, acknowledged, resolution)

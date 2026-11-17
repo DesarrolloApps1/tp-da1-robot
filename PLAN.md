@@ -133,7 +133,7 @@ Kotlin, Jetpack Compose, MVVM con ViewModel y StateFlow, Room para el historial,
 com.vigia
  ├─ domain/
  │   ├─ model/        RobotTelemetry, RobotState, Mission, Route, Checkpoint, Alert, Command, CommandRecord...
- │   ├─ rules/        CommandRules (habilitación), BatteryRules, Freshness
+ │   ├─ rules/        CommandRules (habilitación), BatteryRules, Freshness, IncidentRules (incidente abierto)
  │   ├─ repository/   RobotRepository, HistoryRepository (interfaces)
  │   └─ usecase/      HistoryRecorder (pasa eventos y misiones del robot al historial)
  ├─ data/
