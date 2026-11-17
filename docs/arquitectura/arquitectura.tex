@@ -1,0 +1,20 @@
+% Diagrama de arquitectura exportable: pdflatex arquitectura.tex y después pdftoppm -png -r 200 -singlefile arquitectura.pdf arquitectura
+\documentclass[11pt,border=8pt]{standalone}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{lmodern}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit,backgrounds,calc,babel}
+
+% Mismos colores que el informe
+\definecolor{noche}{HTML}{0F1726}
+\definecolor{ambar}{HTML}{E0A526}
+\definecolor{gris}{HTML}{667085}
+\definecolor{linea}{HTML}{D9DEE7}
+\definecolor{fondo}{HTML}{F3F5F9}
+
+\begin{document}
+\input{diagrama}
+\end{document}
