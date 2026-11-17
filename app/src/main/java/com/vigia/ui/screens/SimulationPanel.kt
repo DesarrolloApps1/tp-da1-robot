@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -29,6 +30,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.vigia.presentation.simulation.DemoScenario
+import com.vigia.presentation.simulation.DemoScenarios
 import com.vigia.presentation.simulation.SimulationUiState
 import com.vigia.presentation.simulation.SimulationViewModel
 import com.vigia.ui.theme.VigiaTheme
@@ -103,6 +106,21 @@ fun SimulationPanelContent(state: SimulationUiState, actions: SimulationActions)
         item { EventControls(state, actions) }
         item { HorizontalDivider() }
         item { SpeedControl(state.speedFactor, actions.onSpeed) }
+        item { HorizontalDivider() }
+        item { Text("Escenarios", style = MaterialTheme.typography.titleSmall) }
+        items(DemoScenarios, key = { it.title }) { ScenarioItem(it) }
+    }
+}
+
+@Composable
+private fun ScenarioItem(scenario: DemoScenario) {
+    Column {
+        Text(scenario.title, style = MaterialTheme.typography.bodyLarge)
+        Text(
+            scenario.instruction,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
