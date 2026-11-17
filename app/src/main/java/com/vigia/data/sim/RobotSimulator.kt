@@ -22,6 +22,7 @@ import com.vigia.domain.model.Facility
 import com.vigia.domain.model.IncidentDecision
 import com.vigia.domain.model.MissionProgress
 import com.vigia.domain.model.MissionResult
+import com.vigia.domain.model.PatrolPace
 import com.vigia.domain.model.Pose
 import com.vigia.domain.model.RejectReason
 import com.vigia.domain.model.RobotState
@@ -40,7 +41,7 @@ import kotlin.math.roundToInt
 class RobotSimulator(private val clock: Clock) {
 
     private class ActiveMission(val id: String, val route: Route) {
-        val total = route.checkpointIds.count { it != Facility.BASE_ID }
+        val total = PatrolPace.checkpointsToVerify(route)
         var targetIndex = 1
         var dwellRemaining = 0.0
         var frozenProgress: Double? = null
@@ -433,8 +434,8 @@ class RobotSimulator(private val clock: Clock) {
         const val DEFAULT_ROUTE_ID = "ronda-completa"
         const val EMERGENCY_EXIT_ID = "CP7"
 
-        const val SPEED = 0.8
-        const val DWELL_SECONDS = 3.0
+        const val SPEED = PatrolPace.SPEED_MPS
+        const val DWELL_SECONDS = PatrolPace.DWELL_SECONDS
         const val WAIT_SECONDS = 10.0
         const val LINK_LOSS_RETURN_SECONDS = 60.0
 

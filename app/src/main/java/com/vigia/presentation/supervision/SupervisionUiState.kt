@@ -2,7 +2,6 @@ package com.vigia.presentation.supervision
 
 import com.vigia.domain.model.Alert
 import com.vigia.domain.model.CommandRecord
-import com.vigia.domain.model.CommandStatus
 import com.vigia.domain.model.CommandType
 import com.vigia.domain.model.Facility
 import com.vigia.domain.model.MissionProgress
@@ -13,7 +12,6 @@ import com.vigia.domain.model.ServiceCounters
 import com.vigia.domain.rules.BatteryLevel
 import com.vigia.domain.rules.BatteryRules
 import com.vigia.domain.rules.CommandAvailability
-import com.vigia.domain.rules.CommandContext
 import com.vigia.domain.rules.CommandRules
 import com.vigia.domain.rules.Freshness
 import com.vigia.domain.rules.IncidentRules
@@ -21,6 +19,7 @@ import com.vigia.presentation.CommandStatusUi
 import com.vigia.presentation.FacilityMapState
 import com.vigia.presentation.IncidentDecisionUi
 import com.vigia.presentation.StatusTone
+import com.vigia.presentation.commandContext
 import com.vigia.presentation.incidentDecisions
 import com.vigia.presentation.toStatusUi
 
@@ -84,13 +83,7 @@ fun supervisionState(
     val incident = IncidentRules.openIncident(telemetry?.state, alerts)
     fun tone(fresh: StatusTone) = if (stale) StatusTone.STALE else fresh
 
-    val context = CommandContext(
-        telemetry = telemetry,
-        stale = stale,
-        openIncident = incident != null,
-        pendingTypes = commands.filter { it.status == CommandStatus.PENDING }.mapTo(mutableSetOf()) { it.command.type },
-        hasUnacknowledgedAlert = alerts.any { !it.acknowledged },
-    )
+    val context = commandContext(telemetry, stale, alerts, commands)
     // La lista viene con la más reciente primero
     val latest = commands.distinctBy { it.command.type }.associateBy { it.command.type }
     val battery = telemetry?.let { BatteryRules.level(it.batteryPercent) }
