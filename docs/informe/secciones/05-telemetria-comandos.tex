@@ -64,7 +64,7 @@ Cancelar se permite también con el robot detenido. Si no, después de una deten
 
 Este contrato es una propuesta nuestra para un gateway propio entre la app y el robot. No es el protocolo oficial de Unitree. El repositorio simulado lo usa de verdad: serializa cada orden a JSON y parsea la telemetría, las respuestas y las alertas que le devuelve el simulador.
 
-Los ejemplos que siguen son mensajes reales del simulador, tomados de una ronda de prueba a las 3 de la mañana. Están en \texttt{docs/contrato} y un test unitario los compara con lo que genera el simulador, así que no se desactualizan. Los decimales largos de posición y progreso salen así del simulador.
+Los ejemplos que siguen son mensajes reales del simulador, tomados de una ronda de prueba. Los \texttt{timestamp} viajan en ISO-8601 y en UTC, así que 03:02Z son las 00:02 en Buenos Aires. Están en \texttt{docs/contrato} y un test unitario los compara con lo que genera el simulador, así que no se desactualizan. Los decimales largos de posición y progreso salen así del simulador.
 
 \textbf{Telemetría}
 
