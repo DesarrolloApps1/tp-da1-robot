@@ -6,8 +6,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.vigia.di.appContainer
 import com.vigia.domain.model.EventRecord
-import com.vigia.domain.model.EventType
 import com.vigia.domain.repository.HistoryRepository
+import com.vigia.domain.rules.IncidentRules
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,7 +32,7 @@ class HistoryViewModel(private val history: HistoryRepository) : ViewModel() {
     }
 
     private val incidentMissionIds = history.events.map { events ->
-        events.filter { it.type == EventType.ALERT }.mapNotNullTo(mutableSetOf(), EventRecord::missionId)
+        events.filter(IncidentRules::isIncident).mapNotNullTo(mutableSetOf(), EventRecord::missionId)
     }
 
     val state: StateFlow<HistoryUiState> = combine(

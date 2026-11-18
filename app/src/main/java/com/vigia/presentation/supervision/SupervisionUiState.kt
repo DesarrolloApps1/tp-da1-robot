@@ -115,7 +115,7 @@ fun supervisionState(
         decisions = incidentDecisions(telemetry?.state, alerts, commands),
         map = FacilityMapState(
             routeId = telemetry?.mission?.routeId,
-            verifiedIds = telemetry?.mission?.verifiedIds().orEmpty(),
+            verifiedIds = telemetry?.mission?.verifiedCheckpointIds?.toSet().orEmpty(),
             currentCheckpointId = telemetry?.mission?.currentCheckpointId,
             robot = telemetry?.pose,
             stale = stale,
@@ -148,11 +148,3 @@ private fun MissionProgress.toUi() = MissionUi(
     checkpointsVerified = checkpointsVerified,
     checkpointsTotal = checkpointsTotal,
 )
-
-// La telemetría solo trae la cuenta: se marcan los primeros puntos de la ruta (un punto salteado corre la marca)
-private fun MissionProgress.verifiedIds(): Set<String> =
-    Facility.route(routeId)?.checkpointIds
-        ?.filter { it != Facility.BASE_ID }
-        ?.take(checkpointsVerified)
-        ?.toSet()
-        .orEmpty()

@@ -33,6 +33,8 @@ data class MissionDto(
     val currentCheckpoint: String?,
     val checkpointsVerified: Int,
     val checkpointsTotal: Int,
+    // Un gateway que no lo mande deja la lista vacía y el plano no marca puntos
+    val verifiedCheckpoints: List<String> = emptyList(),
 )
 
 @Serializable

@@ -45,6 +45,8 @@ class RobotSimulator(private val clock: Clock) {
         var targetIndex = 1
         var dwellRemaining = 0.0
         var frozenProgress: Double? = null
+        // En orden de verificación; un punto salteado no aparece
+        val verified = mutableListOf<String>()
         val targetId get() = route.checkpointIds[targetIndex]
         val isLastTarget get() = targetIndex == route.checkpointIds.lastIndex
     }
@@ -170,6 +172,7 @@ class RobotSimulator(private val clock: Clock) {
                     currentCheckpointId = if (state == RobotState.RETURNING) Facility.BASE_ID else it.targetId,
                     checkpointsVerified = checkpointsVerified,
                     checkpointsTotal = it.total,
+                    verifiedCheckpointIds = it.verified.toList(),
                 )
             },
             pose = Pose(x, y, heading, zone()),
@@ -321,6 +324,7 @@ class RobotSimulator(private val clock: Clock) {
     private fun verify(active: ActiveMission) {
         val point = checkpoint(active.targetId)
         checkpointsVerified++
+        active.verified += point.id
         event(EventType.CHECKPOINT, AlertSeverity.INFO, "Punto verificado: ${point.name}", point.name)
         active.targetIndex++
     }
@@ -395,7 +399,13 @@ class RobotSimulator(private val clock: Clock) {
             else -> "terminada con regreso a la base"
         }
         val severity = if (result == MissionResult.COMPLETED) AlertSeverity.INFO else AlertSeverity.WARNING
-        event(EventType.MISSION, severity, "Misión ${active.id} $text: $checkpointsVerified/${active.total} puntos", null)
+        event(
+            EventType.MISSION,
+            severity,
+            "Misión ${active.id} $text: $checkpointsVerified/${active.total} puntos",
+            null,
+            missionResult = result,
+        )
         mission = null
     }
 
@@ -414,7 +424,13 @@ class RobotSimulator(private val clock: Clock) {
         return alert
     }
 
-    private fun event(type: EventType, severity: AlertSeverity, message: String, zone: String?) {
+    private fun event(
+        type: EventType,
+        severity: AlertSeverity,
+        message: String,
+        zone: String?,
+        missionResult: MissionResult? = null,
+    ) {
         pendingEvents += EventRecord(
             timestampMillis = clock.now(),
             missionId = mission?.id,
@@ -422,6 +438,7 @@ class RobotSimulator(private val clock: Clock) {
             severity = severity,
             message = message,
             zone = zone,
+            missionResult = missionResult,
         )
     }
 

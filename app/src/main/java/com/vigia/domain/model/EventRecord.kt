@@ -10,4 +10,8 @@ data class EventRecord(
     val severity: AlertSeverity,
     val message: String,
     val zone: String?,
+    // Solo en eventos ALERT: qué alerta fue, para saber si cuenta como incidente
+    val alertKind: AlertKind? = null,
+    // Solo en el evento MISSION que cierra la ronda: cómo terminó según el robot
+    val missionResult: MissionResult? = null,
 )

@@ -34,6 +34,7 @@ fun TelemetryDto.toDomain(): RobotTelemetry = RobotTelemetry(
             currentCheckpointId = it.currentCheckpoint,
             checkpointsVerified = it.checkpointsVerified,
             checkpointsTotal = it.checkpointsTotal,
+            verifiedCheckpointIds = it.verifiedCheckpoints,
         )
     },
     pose = Pose(pose.x, pose.y, pose.heading, pose.zone),
@@ -57,6 +58,7 @@ fun RobotTelemetry.toDto(): TelemetryDto = TelemetryDto(
             currentCheckpoint = it.currentCheckpointId,
             checkpointsVerified = it.checkpointsVerified,
             checkpointsTotal = it.checkpointsTotal,
+            verifiedCheckpoints = it.verifiedCheckpointIds,
         )
     },
     pose = PoseDto(pose.x, pose.y, pose.heading, pose.zone),

@@ -1,5 +1,6 @@
 package com.vigia.domain.usecase
 
+import com.vigia.domain.model.EventRecord
 import com.vigia.domain.model.Facility
 import com.vigia.domain.model.MissionProgress
 import com.vigia.domain.model.MissionRecord
@@ -15,6 +16,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * Pasa al historial lo que reporta el robot: cada evento tal cual y un registro por misión
@@ -29,20 +32,41 @@ class HistoryRecorder(
     private val sessionId: String,
 ) {
 
-    // Solo los toca la corrutina que recorre la telemetría
+    // Telemetría y eventos llegan por corrutinas distintas: el lock ordena el acceso a este estado
+    private val lock = Mutex()
     private var current: MissionRecord? = null
+    private var lastFinished: MissionRecord? = null
     private var lastState: RobotState? = null
+
+    // Cierres que informó el robot antes de que la telemetría mostrara el fin de la ronda
+    private val reportedEnds = mutableMapOf<String, EventRecord>()
 
     // UNDISPATCHED: events no tiene replay, hay que estar suscripto antes de que el robot emita
     fun start(scope: CoroutineScope): Job = scope.launch(start = CoroutineStart.UNDISPATCHED) {
         launch(start = CoroutineStart.UNDISPATCHED) {
-            robot.events.collect { history.addEvent(it.copy(missionId = it.missionId?.let(::recordId))) }
+            robot.events.collect { lock.withLock { onEvent(it) } }
         }
         closeStaleMissions()
-        robot.telemetry.filterNotNull().collect(::onTelemetry)
+        robot.telemetry.filterNotNull().collect { lock.withLock { onTelemetry(it) } }
     }
 
     private fun recordId(missionId: String): String = "$missionId@$sessionId"
+
+    private suspend fun onEvent(event: EventRecord) {
+        val id = event.missionId?.let(::recordId)
+        history.addEvent(event.copy(missionId = id))
+        if (id == null || event.missionResult == null) return
+
+        // Si la ronda terminó sin enlace, la telemetría ya la cerró con un resultado deducido: se corrige
+        val finished = lastFinished
+        if (finished?.id == id) {
+            val corrected = finished.copy(result = event.missionResult, endedAtMillis = event.timestampMillis)
+            if (corrected != finished) history.upsertMission(corrected)
+            lastFinished = corrected
+        } else {
+            reportedEnds[id] = event
+        }
+    }
 
     // Una misión que quedó en curso es de una ejecución anterior que se cerró sin terminarla
     private suspend fun closeStaleMissions() {
@@ -57,7 +81,10 @@ class HistoryRecorder(
         if (active != null && active.id != mission?.id?.let(::recordId)) {
             // Los contadores del servicio conservan los valores de la ronda hasta que empieza otra
             val counters = if (mission == null) telemetry.service else null
-            save(active.finished(resultFor(telemetry.state), telemetry.timestampMillis, counters))
+            // El resultado que informó el robot gana; deducirlo del estado solo sirve si no llegó
+            val end = reportedEnds.remove(active.id)
+            val result = end?.missionResult ?: resultFor(telemetry.state)
+            save(active.finished(result, end?.timestampMillis ?: telemetry.timestampMillis, counters))
         }
         if (mission != null) save(inProgress(mission, telemetry.service, telemetry.timestampMillis))
         lastState = telemetry.state
@@ -66,7 +93,12 @@ class HistoryRecorder(
     private suspend fun save(record: MissionRecord) {
         if (record == current) return
         history.upsertMission(record)
-        current = record.takeIf { it.result == MissionResult.IN_PROGRESS }
+        if (record.result == MissionResult.IN_PROGRESS) {
+            current = record
+        } else {
+            current = null
+            lastFinished = record
+        }
     }
 
     private fun inProgress(mission: MissionProgress, service: ServiceCounters, nowMillis: Long): MissionRecord {

@@ -45,7 +45,7 @@ data class HistoryUiState(
 
 /**
  * @param missions lo más nuevo primero, como lo devuelve el repositorio
- * @param incidentMissionIds misiones con al menos una alerta durante la ronda
+ * @param incidentMissionIds misiones con al menos un incidente ([com.vigia.domain.rules.IncidentRules.isIncident])
  * @param timeline eventos de [expandedId], lo más nuevo primero
  */
 fun historyState(

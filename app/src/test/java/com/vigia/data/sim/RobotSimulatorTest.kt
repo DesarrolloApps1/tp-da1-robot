@@ -15,6 +15,7 @@ import com.vigia.domain.model.Command
 import com.vigia.domain.model.CommandType
 import com.vigia.domain.model.EventType
 import com.vigia.domain.model.IncidentDecision
+import com.vigia.domain.model.MissionResult
 import com.vigia.domain.model.RobotState
 import com.vigia.domain.model.RobotTelemetry
 import org.junit.Assert.assertEquals
@@ -215,6 +216,33 @@ class RobotSimulatorTest {
         assertEquals(RobotState.PATROLLING, telemetry.state)
         assertEquals("CP2", telemetry.mission?.currentCheckpointId)
         assertEquals(0, telemetry.service.checkpointsVerified)
+    }
+
+    @Test
+    fun skippedCheckpointIsNotReportedAsVerified() {
+        start()
+        advance(2)
+        sim.obstacleAhead()
+        resolve(alerts().single(), IncidentDecision.SKIP_CHECKPOINT)
+
+        repeat(120) {
+            if (telemetry().mission?.checkpointsVerified == 2) return@repeat
+            advance(1)
+        }
+
+        assertEquals(listOf("CP2", "CP3"), telemetry().mission?.verifiedCheckpointIds)
+    }
+
+    @Test
+    fun missionEndEventCarriesTheResult() {
+        start()
+        advance(61, linkUp = false)
+        repeat(60) { advance(1, linkUp = false) }
+        assertEquals(RobotState.DOCKED, telemetry().state)
+
+        val end = sim.drainEvents().last { it.type == EventType.MISSION }
+        assertEquals(MissionResult.RETURNED_TO_BASE, end.missionResult)
+        assertEquals("m-0001", end.missionId)
     }
 
     @Test

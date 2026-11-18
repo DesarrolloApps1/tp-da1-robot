@@ -1,11 +1,13 @@
 package com.vigia.data.local
 
+import com.vigia.domain.model.AlertKind
 import com.vigia.domain.model.AlertSeverity
 import com.vigia.domain.model.EventRecord
 import com.vigia.domain.model.EventType
 import com.vigia.domain.model.MissionRecord
 import com.vigia.domain.model.MissionResult
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class MappersTest {
@@ -51,6 +53,12 @@ class MappersTest {
             zone = null,
         )
 
+        val alert = connection.copy(type = EventType.ALERT, message = "Obstáculo bloquea el paso", alertKind = AlertKind.OBSTACLE)
+
+        assertEquals("OBSTACLE", alert.toEntity().alertKind)
+        assertEquals(alert, alert.toEntity().toDomain())
+        // Eventos guardados antes de la versión 2 no tienen tipo de alerta
+        assertNull(alert.toEntity().copy(alertKind = null).toDomain().alertKind)
         assertEquals("DECISION", decision.toEntity().type)
         assertEquals(decision, decision.toEntity().toDomain())
         assertEquals(connection, connection.toEntity().toDomain())

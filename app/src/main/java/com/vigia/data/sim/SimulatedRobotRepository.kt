@@ -147,7 +147,7 @@ class SimulatedRobotRepository(
 
         val newAlerts = snapshot.alerts.map { ContractJson.decodeFromString(AlertDto.serializer(), it).toDomain() }
         if (newAlerts.isNotEmpty()) _alerts.update { newAlerts.reversed() + it }
-        newAlerts.forEach { emit(event(EventType.ALERT, it.severity, it.message, it.zone)) }
+        newAlerts.forEach { emit(event(EventType.ALERT, it.severity, it.message, it.zone).copy(alertKind = it.kind)) }
         snapshot.events.forEach(::emit)
     }
 

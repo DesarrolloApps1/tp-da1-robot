@@ -1,5 +1,6 @@
 package com.vigia.data.local
 
+import com.vigia.domain.model.AlertKind
 import com.vigia.domain.model.AlertSeverity
 import com.vigia.domain.model.EventRecord
 import com.vigia.domain.model.EventType
@@ -40,6 +41,7 @@ fun EventRecord.toEntity() = EventEntity(
     severity = severity.name,
     message = message,
     zone = zone,
+    alertKind = alertKind?.name,
 )
 
 fun EventEntity.toDomain() = EventRecord(
@@ -50,4 +52,5 @@ fun EventEntity.toDomain() = EventRecord(
     severity = AlertSeverity.valueOf(severity),
     message = message,
     zone = zone,
+    alertKind = alertKind?.let { name -> AlertKind.entries.firstOrNull { it.name == name } },
 )

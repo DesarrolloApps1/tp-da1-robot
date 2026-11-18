@@ -14,7 +14,7 @@ fun sampleTelemetry(
     state: RobotState = RobotState.PATROLLING,
     battery: Int = 80,
     rssi: Int = -60,
-    mission: MissionProgress? = MissionProgress("m-0001", "ronda-completa", 0.4, "CP4", 3, 8),
+    mission: MissionProgress? = MissionProgress("m-0001", "ronda-completa", 0.4, "CP4", 3, 8, listOf("CP1", "CP2", "CP3")),
 ) = RobotTelemetry(
     robotId = "go2-vigia-01",
     seq = 1,

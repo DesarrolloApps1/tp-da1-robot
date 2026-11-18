@@ -19,7 +19,11 @@
     "progress": 0.2930691734223225,
     "currentCheckpoint": "CP3",
     "checkpointsVerified": 2,
-    "checkpointsTotal": 8
+    "checkpointsTotal": 8,
+    "verifiedCheckpoints": [
+      "CP1",
+      "CP2"
+    ]
   },
   "pose": {
     "x": 17.10098048640722,
