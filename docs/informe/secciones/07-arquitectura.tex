@@ -34,7 +34,7 @@ Cada pantalla tiene su ViewModel: selección de robot, supervisión, misiones, a
 
 El simulador tiene dos partes. \texttt{RobotSimulator} hace de robot: recibe órdenes en JSON, contesta con un \texttt{command\_ack} y genera telemetría y alertas en JSON. No usa corrutinas y el tiempo solo avanza cuando se lo piden, así que en los tests es determinístico. \texttt{SimulatedRobotRepository} hace de app: serializa cada orden, parsea lo que vuelve y lo pasa al dominio. Entre los dos solo viaja el JSON del contrato (sección~\ref{sec:contrato}).
 
-El repositorio simulado corre una corrutina con un tick de un segundo y un multiplicador (x1 o x5) para que las demos no duren lo mismo que una ronda real. En cada tick el simulador mueve el robot sobre la ruta a 0,8~m/s, descuenta batería, se detiene unos segundos en cada punto de control y lo marca como verificado. Desde el panel de simulación se le puede cortar la conexión, pedir que rechace la próxima orden, bajar la batería o provocar un obstáculo, una puerta abierta o una persona en zona restringida. Nada de esto necesita internet.
+El repositorio simulado corre una corrutina con un tick de un segundo y un multiplicador (x1 o x5) para acortar las demos frente al público. En cada tick el simulador mueve el robot sobre la ruta a 0,8~m/s, descuenta batería, se detiene unos segundos en cada punto de control y lo marca como verificado. Desde el panel de simulación se le puede cortar la conexión, pedir que rechace la próxima orden, bajar la batería o provocar un obstáculo, una puerta abierta o una persona en zona restringida. Nada de esto necesita internet.
 
 \subsection{Persistencia}
 
