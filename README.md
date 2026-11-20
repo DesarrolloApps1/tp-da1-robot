@@ -7,7 +7,7 @@ Vigía es la interfaz HMI/HRI que armamos para el TP de Desarrollo de Aplicacion
 - `app/`: la app Android (Kotlin, Jetpack Compose).
 - `docs/informe/`: el informe del TP en LaTeX.
 - `docs/consigna/`: la consigna original del trabajo.
-- **Diseño (Figma):** frames del prototipo navegable y cómo importarlos en [docs/figma/README.md](docs/figma/README.md).
+- **Diseño (Figma):** [prototipo navegable](https://www.figma.com/proto/NjGubKLrsxdJOGcPsqDZXD/Vigia-Prototipo-HMI?node-id=1-7001&starting-point-node-id=1-7001) (flujo normal y flujo con falla) y [archivo de diseño](https://www.figma.com/design/NjGubKLrsxdJOGcPsqDZXD/Vigia-Prototipo-HMI). Cómo se generan los frames: [docs/figma/README.md](docs/figma/README.md).
 - `PLAN.md`: el plan de trabajo del equipo.
 
 ## Cómo compilar
