@@ -25,6 +25,8 @@ data class MissionProgress(
     val currentCheckpointId: String?,
     val checkpointsVerified: Int,
     val checkpointsTotal: Int,
+    // Ids de los puntos ya verificados, en orden; un punto salteado no aparece
+    val verifiedCheckpointIds: List<String> = emptyList(),
 )
 
 data class Pose(

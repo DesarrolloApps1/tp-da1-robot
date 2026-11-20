@@ -29,4 +29,6 @@ data class EventEntity(
     val severity: String,
     val message: String,
     val zone: String?,
+    // Nombre del AlertKind en eventos ALERT; null en el resto y en eventos guardados antes de la versión 2
+    val alertKind: String? = null,
 )

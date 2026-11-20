@@ -7,6 +7,7 @@ import com.vigia.domain.model.CommandStatus
 import com.vigia.domain.model.CommandType
 import com.vigia.domain.model.IncidentDecision
 import com.vigia.domain.model.RejectReason
+import com.vigia.domain.model.MissionProgress
 import com.vigia.domain.model.RobotState
 import com.vigia.domain.model.RobotTelemetry
 import com.vigia.domain.rules.BatteryLevel
@@ -271,6 +272,17 @@ class SupervisionViewModelTest {
             assertEquals("CP4", map.currentCheckpointId)
             assertEquals("Pasillo A", map.robot?.zone)
             assertFalse(map.stale)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun mapMarksTheCheckpointsTheRobotReportsAfterASkip() = runTest {
+        // CP1 se salteó por un obstáculo: no se marca aunque la cuenta sea 2
+        val mission = MissionProgress("m-0001", "ronda-completa", 0.4, "CP4", 2, 8, listOf("CP2", "CP3"))
+        report(sampleTelemetry(mission = mission))
+        viewModel().state.test {
+            assertEquals(setOf("CP2", "CP3"), latest(this).map.verifiedIds)
             cancelAndIgnoreRemainingEvents()
         }
     }

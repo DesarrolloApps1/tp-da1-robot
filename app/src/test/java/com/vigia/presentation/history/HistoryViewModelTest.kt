@@ -2,6 +2,7 @@ package com.vigia.presentation.history
 
 import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
+import com.vigia.domain.model.AlertKind
 import com.vigia.domain.model.AlertSeverity
 import com.vigia.domain.model.EventRecord
 import com.vigia.domain.model.EventType
@@ -45,8 +46,13 @@ class HistoryViewModelTest {
 
     private val history = FakeHistoryRepository(missions)
 
-    private suspend fun event(missionId: String?, type: EventType, timestamp: Long, message: String) =
-        history.addEvent(EventRecord(0, timestamp, missionId, type, AlertSeverity.INFO, message, zone = null))
+    private suspend fun event(
+        missionId: String?,
+        type: EventType,
+        timestamp: Long,
+        message: String,
+        kind: AlertKind? = null,
+    ) = history.addEvent(EventRecord(0, timestamp, missionId, type, AlertSeverity.INFO, message, zone = null, alertKind = kind))
 
     // Corre lo pendiente y devuelve el último estado emitido
     private suspend fun TestScope.latest(states: ReceiveTurbine<HistoryUiState>): HistoryUiState {
@@ -94,8 +100,8 @@ class HistoryViewModelTest {
     @Test
     fun incidentsFilterKeepsMissionsWithAlerts() = runTest {
         event("m-0001@s2", EventType.CHECKPOINT, 310_000, "Punto verificado: Hall de entrada")
-        event("m-0002@s1", EventType.ALERT, 110_000, "Obstáculo bloquea el paso")
-        event(null, EventType.ALERT, 200_000, "Batería baja")
+        event("m-0002@s1", EventType.ALERT, 110_000, "Obstáculo bloquea el paso", AlertKind.OBSTACLE)
+        event(null, EventType.ALERT, 200_000, "Batería baja", AlertKind.LOW_BATTERY)
         val viewModel = HistoryViewModel(history)
         viewModel.state.test {
             assertEquals(listOf(false, false, true, false), latest(this).missions.map { it.hasIncidents })
@@ -107,6 +113,20 @@ class HistoryViewModelTest {
 
             viewModel.onFilter(HistoryFilter.ALL)
             assertEquals(4, latest(this).missions.size)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun batteryAndConnectionAlertsAreNotIncidents() = runTest {
+        event("m-0001@s2", EventType.ALERT, 320_000, "Batería baja: conviene volver a la base", AlertKind.LOW_BATTERY)
+        event("m-0001@s2", EventType.ALERT, 330_000, "Batería crítica", AlertKind.CRITICAL_BATTERY)
+        event("m-0002@s2", EventType.ALERT, 510_000, "Puerta abierta detectada", AlertKind.DOOR_OPEN)
+        event("m-0001@s1", EventType.ALERT, 10_000, "Persona detectada en zona restringida", AlertKind.PERSON_IN_RESTRICTED_ZONE)
+        val viewModel = HistoryViewModel(history)
+        viewModel.state.test {
+            viewModel.onFilter(HistoryFilter.WITH_INCIDENTS)
+            assertEquals(listOf("m-0002@s2", "m-0001@s1"), latest(this).missions.map { it.id })
             cancelAndIgnoreRemainingEvents()
         }
     }

@@ -119,6 +119,54 @@ class HistoryRecorderTest {
         assertEquals(MissionResult.CANCELLED, results["m-0002@s1"])
     }
 
+    // #16: la ronda termina sin enlace; al reconectar la telemetría muestra DOCKED sin haber visto RETURNING
+    @Test
+    fun missionEndedOfflineUsesTheResultReportedByTheRobot() = runTest {
+        val history = FakeHistoryRepository()
+        startRecorder(history)
+
+        report(RobotState.PATROLLING, at = 1_000, verified = 3)
+        report(RobotState.DOCKED, at = 120_000, verified = 3, missionId = null)
+        robot.events.tryEmit(missionEnd(MissionResult.RETURNED_TO_BASE, at = 95_000))
+        runCurrent()
+
+        val record = history.missions.value.single()
+        assertEquals(MissionResult.RETURNED_TO_BASE, record.result)
+        assertEquals(95_000L, record.endedAtMillis)
+        assertEquals(3, record.checkpointsVerified)
+    }
+
+    @Test
+    fun reportedResultWinsWhenTheEventArrivesFirst() = runTest {
+        val history = FakeHistoryRepository()
+        startRecorder(history)
+
+        report(RobotState.PATROLLING, at = 1_000)
+        robot.events.tryEmit(missionEnd(MissionResult.RETURNED_TO_BASE, at = 95_000))
+        runCurrent()
+        report(RobotState.DOCKED, at = 120_000, missionId = null)
+
+        val record = history.missions.value.single()
+        assertEquals(MissionResult.RETURNED_TO_BASE, record.result)
+        assertEquals(95_000L, record.endedAtMillis)
+    }
+
+    @Test
+    fun lateEndEventDoesNotTouchTheNextMission() = runTest {
+        val history = FakeHistoryRepository()
+        startRecorder(history)
+
+        report(RobotState.PATROLLING, at = 1_000)
+        report(RobotState.DOCKED, at = 120_000, missionId = null)
+        report(RobotState.PATROLLING, at = 130_000, missionId = "m-0002")
+        robot.events.tryEmit(missionEnd(MissionResult.RETURNED_TO_BASE, at = 95_000))
+        runCurrent()
+
+        val results = history.missions.value.associate { it.id to it.result }
+        assertEquals(MissionResult.RETURNED_TO_BASE, results["m-0001@s1"])
+        assertEquals(MissionResult.IN_PROGRESS, results["m-0002@s1"])
+    }
+
     @Test
     fun staleMissionsFromEarlierRunsAreAborted() = runTest {
         val stale = MissionRecord(
@@ -157,6 +205,16 @@ class HistoryRecorderTest {
         assertEquals(listOf("m-0001@s1", null), saved.map { it.missionId })
         assertEquals(listOf(EventType.MISSION, EventType.CONNECTION), saved.map { it.type })
     }
+
+    private fun missionEnd(result: MissionResult, at: Long) = EventRecord(
+        timestampMillis = at,
+        missionId = "m-0001",
+        type = EventType.MISSION,
+        severity = AlertSeverity.WARNING,
+        message = "Misión m-0001 terminada con regreso a la base: 3/8 puntos",
+        zone = null,
+        missionResult = result,
+    )
 
     private fun event(type: EventType, message: String, missionId: String?) = EventRecord(
         timestampMillis = 1_000,

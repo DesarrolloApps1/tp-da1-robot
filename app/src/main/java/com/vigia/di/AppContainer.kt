@@ -30,6 +30,7 @@ class AppContainer(context: Context) {
     val simulationControls: SimulationControls = simulatedRobot
 
     private val database = Room.databaseBuilder(context.applicationContext, VigiaDatabase::class.java, VigiaDatabase.NAME)
+        .addMigrations(VigiaDatabase.MIGRATION_1_2)
         .build()
 
     val historyRepository: HistoryRepository = RoomHistoryRepository(database)

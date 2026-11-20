@@ -167,7 +167,7 @@ Telemetría:
   "connection": { "rssi": -62, "latencyMs": 85 },
   "battery": { "percent": 64, "minutesLeft": 72, "charging": false },
   "state": "PATROLLING",
-  "mission": { "id": "m-0007", "routeId": "ronda-completa", "progress": 0.42, "currentCheckpoint": "CP4", "checkpointsVerified": 3, "checkpointsTotal": 8 },
+  "mission": { "id": "m-0007", "routeId": "ronda-completa", "progress": 0.42, "currentCheckpoint": "CP4", "checkpointsVerified": 3, "checkpointsTotal": 8, "verifiedCheckpoints": ["CP1", "CP2", "CP3"] },
   "pose": { "x": 18.4, "y": 6.2, "heading": 90, "zone": "Laboratorio de informática" },
   "motion": { "speed": 0.8, "moving": true },
   "service": { "checkpointsVerified": 3, "peopleInRestrictedZone": 0, "openDoors": 1 }

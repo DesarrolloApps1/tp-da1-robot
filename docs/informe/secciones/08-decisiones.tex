@@ -32,6 +32,9 @@ El guardia elige la decisión y después la confirma & Un toque accidental no ma
 En el historial, el id de cada misión lleva un sufijo de sesión & El simulador numera las misiones desde \texttt{m-0001} cada vez que se abre la app. Con el sufijo, una ejecución nueva no pisa las rondas anteriores \\
 Las rondas que quedaron abiertas de una ejecución anterior se cierran como interrumpidas & La app se cerró en medio de la ronda y no hay forma de saber cómo terminó \\
 La velocidad de patrulla y el tiempo en cada punto viven en una sola constante del dominio (\texttt{PatrolPace}) & El simulador y la duración estimada de cada ruta usan los mismos números y no se desfasan \\
+El resultado de cada ronda lo informa el robot en el evento de fin de misión; el historial solo lo deduce de la telemetría si ese evento no llegó & Si la ronda termina sin enlace, al reconectar la app no vio el regreso a la base y la habría guardado como completada \\
+La telemetría manda los ids de los puntos verificados (\texttt{verifiedCheckpoints}), no solo la cuenta & Al saltear un punto, el plano marca los puntos que de verdad se revisaron \\
+El filtro ``Con incidentes'' cuenta obstáculos, personas en zonas restringidas y puertas abiertas. La batería y la conexión no & Son avisos sobre el robot, no hallazgos de la ronda. Por eso el historial guarda el tipo de cada alerta \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -44,7 +47,4 @@ La velocidad de patrulla y el tiempo en cada punto viven en una sola constante d
   \item El plano es una simplificación de una planta baja; no corresponde a la planta real de la sede.
   \item Hay un solo operador. No contemplamos dos guardias mandando órdenes al mismo robot.
   \item Todavía no probamos la app en un dispositivo físico.
-  \item Si una ronda termina mientras la app está sin conexión, el historial la registra como completada.
-  \item Después de saltear un punto de control, las marcas de puntos verificados del mapa se corren.
-  \item El filtro ``Con incidentes'' del historial también muestra las rondas que solo tuvieron batería baja.
 \end{itemize}
