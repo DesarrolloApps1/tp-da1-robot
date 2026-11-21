@@ -1,0 +1,69 @@
+\section{Actores e interacción}
+\label{sec:interaccion}
+
+\subsection{Roles}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{@{}l L L@{}}
+\toprule
+\textbf{Rol} & \textbf{Qué necesita saber} & \textbf{Cuándo interviene} \\
+\midrule
+Guardia de la central & Dónde está el robot, qué puntos verificó, si hay alertas abiertas y si los datos están al día & Inicia la ronda, decide ante un incidente, reconoce alertas, manda el robot a la base \\
+Jefe de seguridad & Qué rondas se hicieron, cuándo y qué pasó en cada una & Al día siguiente, revisando el historial \\
+Personas en el edificio & Qué es el robot y qué tienen que hacer cuando lo cruzan & Cuando se lo encuentran en un pasillo o en una zona restringida \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{HMI: lo que ve el guardia}
+
+La pantalla principal es la de supervisión. Arriba está el estado de la conexión con la hora del último dato; en el centro, el plano con la ruta, los puntos ya verificados y la posición del robot; abajo, las órdenes disponibles. Cada orden muestra si se puede usar y, si no, por qué.
+
+Usamos tema oscuro por defecto. El guardia trabaja de noche en una central con poca luz y una pantalla blanca encandila. Los colores tienen un solo significado en toda la app: verde para lo normal, ámbar para advertencias, rojo para errores y gris para datos viejos.
+
+\subsection{HRI: lo que ven las personas que se cruzan con el robot}
+
+El robot no está pensado para hablar con la gente, pero se la va a cruzar: personal de limpieza, un docente que se quedó tarde, alguien de mantenimiento. Para esos casos definimos un comportamiento fijo:
+
+\begin{itemize}
+  \item Si detecta a una persona en un lugar de paso, se detiene a dos metros, le da paso y sigue.
+  \item Si la persona está en una zona restringida, se detiene a distancia y dice por el parlante: ``Zona restringida. Seguridad fue notificada''. No la sigue ni la encierra.
+  \item El robot nunca toma decisiones sobre la persona. Avisa y es el guardia quien la clasifica.
+\end{itemize}
+
+\subsection{Cuándo tiene que intervenir un humano}
+
+El robot sigue la ronda solo, pero frena y espera al guardia en cuatro situaciones: algo le bloquea el camino, detecta a una persona en una zona restringida, la batería baja del umbral crítico o pierde la conexión por más de un minuto. En este último caso no puede esperar a nadie, así que vuelve solo a la base.
+
+\subsection{Diseño en Figma}
+\label{sec:figma}
+
+Los frames del diseño los genera \texttt{docs/figma/build.py} a partir del tema y los textos de la app, así que coinciden con lo que se ve en pantalla. Cubren los estados normal, deshabilitado, advertencia y error, y dos recorridos: un flujo normal y un flujo con falla. El prototipo navegable se arma importando esos frames en Figma y conectándolos como explica \texttt{docs/figma/README.md}. La figura~\ref{fig:navegacion} muestra el mapa de navegación y la figura~\ref{fig:flujo-falla}, el flujo con falla.
+
+Prototipo navegable, con los puntos de inicio ``Flujo normal'' y ``Flujo con falla'': \url{https://www.figma.com/proto/NjGubKLrsxdJOGcPsqDZXD/Vigia-Prototipo-HMI?node-id=1-7001&starting-point-node-id=1-7001}
+
+Archivo de diseño, con las pantallas y los tableros (mapa de navegación, sistema de diseño y flujos): \url{https://www.figma.com/design/NjGubKLrsxdJOGcPsqDZXD/Vigia-Prototipo-HMI}
+
+En el archivo, la página \emph{Componentes} reúne los componentes reutilizables agrupados por categoría: barras de estado, superior y de navegación, botones y espacios de orden, detención mantenida, tarjetas de telemetría, chips de estado, avisos, tarjetas de rondas, alertas e historial, diálogos y controles del panel de simulación. Los que cambian según la situación tienen variantes con los estados visuales normal, deshabilitado o sin datos, advertencia y error. Todas las pantallas del prototipo están armadas con instancias de esos componentes. La figura~\ref{fig:componentes} muestra algunos de ellos con sus variantes.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{../figma/png/00-componentes-figma.png}
+\caption{Algunos componentes de la página \emph{Componentes} del archivo de Figma, con sus variantes de estado.}
+\label{fig:componentes}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{../figma/png/00-mapa-de-navegacion.png}
+\caption{Mapa de navegación: todos los frames y cómo se llega a cada uno.}
+\label{fig:navegacion}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth,height=0.62\textheight,keepaspectratio]{../figma/png/00-flujo-con-falla.png}
+\caption{Flujo con falla: desconexión (escenario 3) y obstáculo en el pasillo B (escenario 4).}
+\label{fig:flujo-falla}
+\end{figure}

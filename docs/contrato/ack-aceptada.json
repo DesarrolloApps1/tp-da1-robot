@@ -1,0 +1,7 @@
+{
+  "type": "command_ack",
+  "commandId": "cmd-0002",
+  "result": "ACCEPTED",
+  "reason": null,
+  "respondedAt": "2026-11-16T03:00:42.200Z"
+}

@@ -1,0 +1,43 @@
+{
+  "type": "telemetry",
+  "robotId": "go2-vigia-01",
+  "seq": 66,
+  "timestamp": "2026-11-16T03:01:07.200Z",
+  "connection": {
+    "rssi": -57,
+    "latencyMs": 96
+  },
+  "battery": {
+    "percent": 35,
+    "minutesLeft": 2,
+    "charging": false
+  },
+  "state": "PATROLLING",
+  "mission": {
+    "id": "m-0001",
+    "routeId": "ronda-completa",
+    "progress": 0.2930691734223225,
+    "currentCheckpoint": "CP3",
+    "checkpointsVerified": 2,
+    "checkpointsTotal": 8,
+    "verifiedCheckpoints": [
+      "CP1",
+      "CP2"
+    ]
+  },
+  "pose": {
+    "x": 17.10098048640722,
+    "y": 5.0,
+    "heading": 0.0,
+    "zone": "Pasillo A"
+  },
+  "motion": {
+    "speed": 0.8,
+    "moving": true
+  },
+  "service": {
+    "checkpointsVerified": 2,
+    "peopleInRestrictedZone": 0,
+    "openDoors": 0
+  }
+}

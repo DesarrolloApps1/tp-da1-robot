@@ -1,0 +1,107 @@
+\section{Telemetría y órdenes}
+\label{sec:telemetria}
+
+\subsection{Datos que muestra la app}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Dato} & \textbf{Cómo se muestra} \\
+\midrule
+Conectividad & Conectado, señal débil o sin datos, con la latencia en milisegundos \\
+Batería & Porcentaje y minutos estimados. Ámbar debajo del 25~\%, rojo debajo del 15~\% \\
+Estado operativo & En base, listo, patrullando, en pausa, incidente, regresando, detenido o falla \\
+Misión y progreso & Ruta activa, punto de control actual y porcentaje recorrido \\
+Ubicación & Posición sobre el plano y nombre de la zona \\
+Movimiento & Velocidad y rumbo \\
+Alertas & Cantidad de alertas activas y la más grave \\
+Última actualización & Hora del último dato y su antigüedad. Con más de 3~s sin datos, todo pasa a gris con la leyenda ``hace 12~s'' \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Las tres variables propias del servicio son:
+
+\begin{enumerate}
+  \item \textbf{Puntos de control verificados} en la ronda actual, por ejemplo 3 de 8. Es lo que el jefe de seguridad quiere ver al día siguiente.
+  \item \textbf{Personas detectadas en zonas restringidas} durante la ronda.
+  \item \textbf{Puertas abiertas detectadas}, que de noche tendrían que estar todas cerradas.
+\end{enumerate}
+
+\subsection{Órdenes}
+
+Cada orden pasa por cuatro estados posibles, y la app siempre muestra en cuál está: \textit{pendiente} mientras espera respuesta, \textit{confirmada} si el robot la aceptó, \textit{rechazada} si la rechazó con un motivo, y \textit{sin respuesta} si pasaron 5~segundos sin noticias.
+
+\begin{nota}
+Que una orden esté confirmada quiere decir que el robot la aceptó, no que la terminó. Que el robot efectivamente se detuvo o llegó a la base se ve después, en la telemetría. Y la detención de la app es un comando de software simulado: no reemplaza la parada de emergencia física del robot.
+\end{nota}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{@{}l L l@{}}
+\toprule
+\textbf{Orden} & \textbf{Se habilita cuando} & \textbf{Rechazo típico} \\
+\midrule
+Iniciar misión & Hay datos recientes, el robot está en base o listo, la batería está en 30~\% o más y no hay un incidente abierto & Batería baja, robot ocupado \\
+Pausar & Está patrullando & Estado inválido \\
+Reanudar & Está en pausa, con 15~\% de batería o más y sin incidente abierto & Batería baja \\
+Cancelar misión & Patrullando, en pausa, en incidente o detenido. Pide confirmación & Estado inválido \\
+Regresar a punto seguro & En cualquier estado salvo en base o ya regresando. Pide confirmación & Camino bloqueado \\
+Detención operativa & Siempre. Hay que mantener apretado el botón 1,5~s & Puede quedar sin respuesta \\
+Reconocer alerta & Hay una alerta activa sin reconocer & Alerta desconocida \\
+Resolver incidente & Hay un incidente abierto. El guardia elige la decisión y después la confirma & Alerta desconocida \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Mientras una orden está pendiente no se puede mandar otra del mismo tipo. La excepción es la detención operativa: se puede volver a mandar siempre, aunque haya una pendiente. Sin datos recientes los botones siguen visibles y habilitados, porque el guardia tiene que poder intentar detener el robot, pero la app avisa que la orden puede no llegar. Solo iniciar misión se deshabilita, porque necesita datos al día.
+
+Cancelar se permite también con el robot detenido. Si no, después de una detención la única salida sería mandarlo a la base.
+
+\subsection{Contrato de mensajes propuesto}
+\label{sec:contrato}
+
+Este contrato es una propuesta nuestra para un gateway propio entre la app y el robot. No es el protocolo oficial de Unitree. El repositorio simulado lo usa de verdad: serializa cada orden a JSON y parsea la telemetría, las respuestas y las alertas que le devuelve el simulador.
+
+Los ejemplos que siguen son mensajes reales del simulador, tomados de una ronda de prueba. Los \texttt{timestamp} viajan en ISO-8601 y en UTC, así que 03:02Z son las 00:02 en Buenos Aires. Están en \texttt{docs/contrato} y un test unitario los compara con lo que genera el simulador, así que no se desactualizan. Los decimales largos de posición y progreso salen así del simulador.
+
+\textbf{Telemetría}
+
+\noindent
+\begin{minipage}[t]{0.49\textwidth}
+\small Patrullando por el pasillo A
+\lstinputlisting[basicstyle=\ttfamily\scriptsize]{../contrato/telemetria-patrullando.json}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\textwidth}
+\small Batería por debajo del 25~\%
+\lstinputlisting[basicstyle=\ttfamily\scriptsize]{../contrato/telemetria-bateria-baja.json}
+\end{minipage}
+
+\textbf{Orden y respuestas}
+
+El primer intento de arranque fue con 20~\% de batería y el robot lo rechazó. Después de cargar, el segundo se aceptó.
+
+\noindent
+\begin{minipage}[t]{0.49\textwidth}
+\lstinputlisting{../contrato/orden-iniciar-mision.json}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\textwidth}
+\lstinputlisting{../contrato/ack-aceptada.json}
+\lstinputlisting{../contrato/ack-rechazada-bateria-baja.json}
+\end{minipage}
+
+\textbf{Alertas y decisión del guardia}
+
+Ante el obstáculo el guardia eligió esperar. La orden para resolver el incidente lleva el id de la alerta y la decisión.
+
+\noindent
+\begin{minipage}[t]{0.49\textwidth}
+\lstinputlisting{../contrato/alerta-obstaculo.json}
+\lstinputlisting{../contrato/orden-resolver-incidente.json}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\textwidth}
+\lstinputlisting{../contrato/alerta-persona-zona-restringida.json}
+\end{minipage}
+
+Si pasan 5~segundos sin un \texttt{command\_ack}, la app marca la orden como sin respuesta. No se reintenta sola: el guardia decide si la vuelve a mandar.

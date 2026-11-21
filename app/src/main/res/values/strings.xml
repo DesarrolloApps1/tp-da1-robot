@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Vigía</string>
+
+    <string name="robot_select_title">Selección de robot</string>
+
+    <string name="tab_supervision">Supervisión</string>
+    <string name="tab_missions">Misiones</string>
+    <string name="tab_alerts">Alertas</string>
+    <string name="tab_history">Historial</string>
+
+    <string name="simulation_panel">Panel de simulación</string>
+</resources>

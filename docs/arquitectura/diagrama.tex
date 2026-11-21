@@ -1,0 +1,65 @@
+% Diagrama de capas. Lo usan el informe (secciones/07-arquitectura.tex) y arquitectura.tex
+% Necesita tikz con arrows.meta, fit y backgrounds, y los colores noche, fondo, gris, linea y ambar
+% Letra fija de 7 pt para que mida lo mismo en el informe (11 pt) y en la exportación
+\begin{tikzpicture}[
+  font=\fontsize{7}{8.5}\selectfont,
+  caja/.style={draw=noche,fill=white,rounded corners=2pt,thick,text width=#1,align=center,
+    minimum height=1.2cm,inner sep=3pt,execute at begin node={\hyphenpenalty=10000\relax}},
+  caja/.default=3.3cm,
+  capa/.style={draw=linea,fill=fondo,rounded corners=4pt,inner xsep=6pt,inner ysep=5pt},
+  nombre/.style={font=\fontsize{9}{11}\selectfont\bfseries\color{noche},anchor=south west,inner sep=1pt},
+  flecha/.style={-{Stealth[length=2mm]},thick,gris},
+  json/.style={{Stealth[length=2mm]}-{Stealth[length=2mm]},thick,ambar},
+  crea/.style={-{Stealth[length=2mm]},thick,gris,dashed}]
+
+  % ui
+  \node[caja=4.58cm] (screens) at (0.64,0) {\textbf{screens}\\Supervisión, Misiones, Alertas, Historial, panel de simulación, selección de robot};
+  \node[caja=4.58cm] (components) at (5.78,0) {\textbf{components}\\Mapa, tarjeta de telemetría, chips de estado, diálogos, botón de detener};
+  \node[caja=4.58cm] (navigation) at (10.91,0) {\textbf{navigation}\\AppNavHost y rutas};
+
+  % presentation
+  \node[caja=4.58cm] (vms) at (0.64,-2.2) {\textbf{Un ViewModel y su UiState por pantalla}\\RobotSelect, Supervision, Missions, Alerts, History};
+  \node[caja=4.58cm] (mainvm) at (5.78,-2.2) {\textbf{MainViewModel}\\Badge de alertas sin reconocer};
+  \node[caja=4.58cm] (simvm) at (10.91,-2.2) {\textbf{SimulationViewModel}\\Panel de simulación};
+
+  % domain
+  \node[caja] (model) at (0,-4.4) {\textbf{model}\\Telemetría, estados, misiones, alertas, órdenes};
+  \node[caja] (rules) at (3.85,-4.4) {\textbf{rules}\\CommandRules, BatteryRules, Freshness, IncidentRules};
+  \node[caja] (repos) at (7.7,-4.4) {\textbf{repository} (interfaces)\\RobotRepository, HistoryRepository, SimulationControls};
+  \node[caja] (usecase) at (11.55,-4.4) {\textbf{usecase}\\HistoryRecorder: pasa misiones y eventos al historial};
+
+  % data
+  \node[caja] (contract) at (0,-6.8) {\textbf{contract}\\DTOs, mappers y ContractJson};
+  \node[caja] (simrepo) at (3.85,-6.8) {\textbf{sim}\\SimulatedRobotRepository};
+  \node[caja] (roomrepo) at (7.7,-6.8) {\textbf{local}\\RoomHistoryRepository};
+  \node[caja] (db) at (11.55,-6.8) {\textbf{local}\\VigiaDatabase (Room): rondas y eventos};
+  \node[caja] (sim) at (3.85,-8.8) {\textbf{RobotSimulator}\\Lado robot, tick de 1~s};
+
+  \begin{scope}[on background layer]
+    \node[capa,fit=(screens)(components)(navigation)] (ui) {};
+    \node[capa,fit=(vms)(mainvm)(simvm)] (presentation) {};
+    \node[capa,fit=(model)(rules)(repos)(usecase)] (domain) {};
+    \node[capa,fit=(contract)(simrepo)(roomrepo)(db)(sim)] (data) {};
+  \end{scope}
+  \node[nombre] at (ui.north west) {ui};
+  \node[nombre] at (presentation.north west) {presentation};
+  \node[nombre] at (domain.north west) {domain};
+  \node[nombre] at (data.north west) {data};
+
+  % di
+  \node[caja=8.4cm,minimum height=0.9cm] (di) at (5.78,-11.0) {\textbf{di/AppContainer}\\Crea el simulador, la base y los repositorios, arranca HistoryRecorder y le da las dependencias a las factories de los ViewModels};
+
+  % Dependencias entre capas: cada flecha va de quien usa a quien es usado
+  \draw[flecha] ([xshift=-1.5cm]ui.south) -- node[right]{eventos} ([xshift=-1.5cm]presentation.north);
+  \draw[flecha] ([xshift=1.5cm]presentation.north) -- node[right]{StateFlow\textless UiState\textgreater} ([xshift=1.5cm]ui.south);
+  \draw[flecha] (presentation.south) -- node[right]{modelo, reglas e interfaces} (domain.north);
+  \draw[flecha] (simrepo.north) -- node[left,pos=0.4]{implementa} (repos.south west);
+  \draw[flecha] (roomrepo.north) -- node[right,pos=0.4]{implementa} (repos.south);
+  \draw[flecha] (usecase) -- (repos);
+  \draw[flecha] (roomrepo) -- (db);
+  \draw[flecha] (simrepo) -- (contract);
+  \draw[json] (simrepo) -- node[fill=fondo,inner sep=1pt]{JSON del contrato} (sim);
+
+  \draw[crea] (di.north) -- node[right]{crea} (data.south);
+  \draw[crea] (di.east) -| ([xshift=3mm]presentation.east) -- (presentation.east);
+\end{tikzpicture}
