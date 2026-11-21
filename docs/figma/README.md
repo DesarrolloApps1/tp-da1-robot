@@ -7,6 +7,8 @@ Los colores son los de `app/src/main/java/com/vigia/ui/theme/Theme.kt` (tema osc
 ```
 docs/figma/
 ├── build.py      # genera todo: tokens, componentes, pantallas, tableros y galería
+├── build_plugin.py  # genera plugin/ con los frames embebidos y las conexiones
+├── plugin/       # plugin de Figma que importa los frames y arma el prototipo
 ├── screens/      # 21 frames Android de 360 × 800 dp para importar en Figma
 ├── boards/       # mapa de navegación, sistema de diseño, flujo normal y flujo con falla
 ├── png/          # exportes @2x de frames y tableros (para el informe)
@@ -25,7 +27,19 @@ python build.py --png    # además exporta png/ a 2x
 
 Para ver todo junto, abrí `index.html` en el navegador.
 
-## Importar en Figma
+## Armar el prototipo con el plugin
+
+`plugin/` es un plugin de Figma que hace solo lo de las dos secciones siguientes: importa los 21 frames y los 4 tableros, crea todas las conexiones de la tabla y los dos *flow starting points*.
+
+1. Abrí la app de escritorio de Figma (los plugins en desarrollo no se cargan desde el navegador) y creá un archivo de diseño nuevo.
+2. Menú → *Plugins* → *Development* → *Import plugin from manifest…* y elegí `docs/figma/plugin/manifest.json`.
+3. Menú → *Plugins* → *Development* → *Vigía · prototipo*. Tarda unos segundos; al terminar avisa cuántos frames y conexiones creó.
+4. Quedan dos páginas nuevas: `Prototipo` (los frames conectados) y `Tableros`. Abrí `Prototipo` y probalo con *Present*.
+5. *Share* → *Copy link* (con acceso "Anyone with the link can view") y pegá el link en `docs/informe/secciones/04-interaccion.tex`, donde dice `link al prototipo en Figma`.
+
+Si cambian los SVG, regenerá el plugin con `python build_plugin.py`. El script verifica que cada capa de la tabla exista en su frame antes de escribir `plugin/code.js`.
+
+## Importar en Figma a mano
 
 1. Creá un archivo nuevo con tres páginas: `Pantallas`, `Tableros` y `Prototipo`.
 2. En `Pantallas`, arrastrá todos los `.svg` de `screens/` al lienzo. Cada archivo queda como un frame de 360 × 800 con su nombre (`03-supervision-patrullando`, etc.). Seleccionalos todos y usá *Tidy up* para ordenarlos.
