@@ -107,3 +107,26 @@ Los tableros completan lo que pide la consigna:
 ## Diferencias con la app
 
 - La app usa Roboto (la fuente del sistema); en Figma usamos Inter, que tiene medidas parecidas, y JetBrains Mono para los números.
+
+## Prototipo publicado
+
+- Prototipo navegable (modo presentación): https://www.figma.com/proto/NjGubKLrsxdJOGcPsqDZXD/Vigia-Prototipo-HMI?node-id=1-7001&starting-point-node-id=1-7001
+- Archivo de diseño: https://www.figma.com/design/NjGubKLrsxdJOGcPsqDZXD/Vigia-Prototipo-HMI
+
+Los dos links son de solo lectura para cualquiera que los tenga. El archivo tiene tres páginas:
+
+- **Prototipo**: los 21 frames conectados, con dos puntos de inicio, *Flujo normal* (desde 01) y *Flujo con falla* (desde 03).
+- **Componentes**: 78 componentes reutilizables agrupados por categoría (navegación, órdenes y control, telemetría y estado, misiones y alertas, diálogos, selección de robot y panel de simulación). Los que cambian según la situación son *component sets* con variantes de estado: por ejemplo, `Telemetry card/Batería` (Normal, Sin datos, Advertencia), `Command slot/Volver a la base` (Deshabilitado, Habilitado, Pendiente, Confirmada, Rechazada, Sin conexión), `Hold to stop` (Normal, Presionado, Sin conexión) y `Notice` (Desconexión, Inicio bloqueado, Batería baja, Incidente). Todas las pantallas del prototipo están armadas con instancias de estos componentes. La figura `png/00-componentes-figma.png` muestra una parte.
+- **Tableros**: mapa de navegación, sistema de diseño, flujo normal y flujo con falla.
+
+Además de las conexiones de la tabla, el archivo publicado tiene tres más para que todos los frames sean alcanzables:
+
+| Desde | Capa | Hacia | Disparador |
+|---|---|---|---|
+| 18 | `Button/outlined/Rechazar` | 06c | On tap |
+| 09 | `Tab/Misiones` | 08 | On tap |
+| 14 | `Text button/Más tarde` | 15 | On tap |
+
+Las conexiones de una pestaña a su propio frame (por ejemplo `Tab/Supervisión` dentro de 03) no se crean: Figma no permite navegar al mismo frame.
+
+Los componentes y estas tres conexiones se armaron sobre el archivo ya importado. Si se vuelve a generar el prototipo desde los SVG, hay que repetirlos.
