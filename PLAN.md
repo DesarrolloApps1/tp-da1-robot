@@ -224,10 +224,12 @@ Lo que no se termine queda como issue en el repo, con el número de fila de esta
 
 ### Fuera de este plan (issues aparte)
 
-- Prototipo en Figma: mapa de navegación, componentes, estados (normal, deshabilitado, advertencia, error), flujo normal y flujo con falla.
-- Investigación técnica del Go2 con fuentes (sensores, autonomía, versiones AIR/PRO/EDU).
-- Evidencias de los cinco escenarios (capturas) y video de demostración.
-- Diagrama de arquitectura exportado para la entrega.
+Estado de lo que quedó fuera de la tabla:
+
+- **Hecho.** Prototipo en Figma: mapa de navegación, componentes reutilizables con variantes de estado (normal, deshabilitado, advertencia, error), flujo normal y flujo con falla. Links y detalle en [docs/figma/README.md](docs/figma/README.md#prototipo-publicado).
+- **Hecho.** Investigación técnica del Go2 con fuentes (sensores, autonomía, versiones AIR/PRO/EDU), en el informe (#22).
+- **Hecho.** Evidencias de los cinco escenarios (capturas) y video de demostración, en [docs/evidencias](docs/evidencias/README.md) (#29 y #30).
+- **Hecho.** Diagrama de arquitectura exportado para la entrega, en [docs/arquitectura](docs/arquitectura/arquitectura.pdf).
 
 El trabajo pendiente se sigue en los [issues del repo](https://github.com/DesarrolloApps1/tp-da1-robot/issues).
 
