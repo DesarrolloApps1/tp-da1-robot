@@ -1,0 +1,10 @@
+{
+  "type": "command",
+  "commandId": "cmd-0002",
+  "robotId": "go2-vigia-01",
+  "command": "START_MISSION",
+  "params": {
+    "routeId": "ronda-completa"
+  },
+  "issuedAt": "2026-11-16T03:00:41.600Z"
+}

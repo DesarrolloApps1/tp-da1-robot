@@ -1,0 +1,60 @@
+\section{Entorno y recorrido}
+\label{sec:entorno}
+
+El robot trabaja en la planta baja de la sede, de 22:00 a 06:00. Para el TP usamos un plano simplificado de 40 por 20 metros con ocho puntos de control y una base de carga al lado de la central de seguridad. Las coordenadas del plano son las mismas que usa el simulador de la app.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.38cm,y=0.38cm,
+  zona/.style={draw=linea,fill=fondo,thick},
+  restr/.style={draw=alerta,fill=alerta!8,thick,dashed},
+  cp/.style={circle,draw=noche,fill=white,thick,inner sep=1.4pt,font=\scriptsize\bfseries},
+  lbl/.style={font=\scriptsize,text=gris,align=center}]
+  % Zonas
+  \draw[zona] (0,0) rectangle (6,6);   \node[lbl] at (3,5) {Central};
+  \draw[zona] (6,0) rectangle (14,8);  \node[lbl] at (10,7) {Hall};
+  \draw[zona] (14,3) rectangle (26,7); \node[lbl] at (20,6.2) {Pasillo A};
+  \draw[zona] (14,7) rectangle (26,12);\node[lbl] at (20,9.5) {Aulas};
+  \draw[restr] (26,0) rectangle (36,8);\node[lbl] at (31,7) {Laboratorio};
+  \draw[zona] (30,8) rectangle (40,16);\node[lbl] at (36.5,15) {Biblioteca};
+  \draw[restr] (26,14) rectangle (34,20);\node[lbl] at (29,19) {Sala técnica};
+  \draw[zona] (6,12) rectangle (26,16);\node[lbl] at (14,15.2) {Pasillo B};
+  \draw[zona] (16,16) rectangle (24,20);\node[lbl] at (20,19.2) {Salida de emergencia};
+  % Ruta completa
+  \draw[-{Stealth[length=2mm]},ambar,very thick]
+    (3,3) -- (8,2) -- (12,5) -- (20,5) -- (30,4) -- (34,12) -- (30,17) -- (20,18) -- (10,14) -- (3,3);
+  % Puntos de control
+  \node[cp,fill=ok,text=white] at (3,3) {B};
+  \node[cp] at (8,2) {1};
+  \node[cp] at (12,5) {2};
+  \node[cp] at (20,5) {3};
+  \node[cp,draw=alerta] at (30,4) {4};
+  \node[cp] at (34,12) {5};
+  \node[cp,draw=alerta] at (30,17) {6};
+  \node[cp] at (20,18) {7};
+  \node[cp] at (10,14) {8};
+\end{tikzpicture}
+\caption{Plano simplificado de la planta baja con la ronda completa. En rojo punteado, las zonas restringidas.}
+\label{fig:plano}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{@{}l L l c@{}}
+\toprule
+\textbf{Id} & \textbf{Punto de control} & \textbf{Tipo} & \textbf{Posición (m)} \\
+\midrule
+BASE & Base de carga & Punto seguro & (3, 3) \\
+CP1 & Hall de entrada & Puerta & (8, 2) \\
+CP2 & Molinetes & Paso & (12, 5) \\
+CP3 & Pasillo de aulas A & Paso & (20, 5) \\
+CP4 & Laboratorio de informática & Zona restringida & (30, 4) \\
+CP5 & Biblioteca & Paso & (34, 12) \\
+CP6 & Sala técnica & Zona restringida & (30, 17) \\
+CP7 & Salida de emergencia & Puerta & (20, 18) \\
+CP8 & Pasillo de aulas B & Paso & (10, 14) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Hay tres rutas cargadas. La \textbf{ronda completa} pasa por los ocho puntos y vuelve a la base. La \textbf{ronda perimetral} revisa solo accesos y puertas (CP1, CP7 y CP2). La de \textbf{zonas críticas} va directo al laboratorio y a la sala técnica, y sirve para cuando el guardia quiere una revisión rápida de lo más sensible.

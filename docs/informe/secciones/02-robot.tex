@@ -1,0 +1,43 @@
+\section{Elección del robot}
+\label{sec:robot}
+
+\subsection{Go2 frente a G1}
+
+La ronda pide caminar varias horas por pasillos, pasar umbrales y algún escalón bajo, y mirar alrededor. No pide agarrar ni mover objetos. Para eso el Go2 alcanza y sobra: es más chico, más estable sobre cuatro patas y bastante más barato que el G1. Los brazos del humanoide no se usarían, y un robot de altura humana caminando de noche por un pasillo asusta más que un cuadrúpedo del tamaño de un perro grande.
+
+\subsection{Qué trae el Go2}
+
+Unitree vende el Go2 en tres versiones: AIR, PRO y EDU. Para este servicio haría falta la EDU, que es la única que habilita el SDK para mandarle órdenes desde un sistema propio. La EDU además trae la batería de larga duración (15000~mAh) y una cámara de profundidad.
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Aspecto} & \textbf{Lo que usamos del Go2} \\
+\midrule
+Sensores & LiDAR 4D con un campo de 360° por 96° y cámara gran angular. La EDU suma una cámara de profundidad. Con eso detecta obstáculos y arma el mapa del piso. \\
+Movilidad & Camina en interiores, sube escalones de hasta unos 16~cm y rampas de hasta 40°, y se recupera si lo empujan. Pesa unos 15~kg. Para la ronda limitamos la velocidad a 0,8~m/s, muy por debajo de su máximo de 3,7~m/s. \\
+Autonomía & Según Unitree, entre 1 y 2 horas con la batería estándar de 8000~mAh (AIR y PRO) y entre 2 y 4 horas con la de 15000~mAh de la EDU. En el plano del TP la ronda completa mide unos 77~m y, a 0,8~m/s con una parada de 3~s en cada punto, dura poco más de 2 minutos. Aunque la planta real tenga un recorrido varias veces más largo, con la EDU entran muchas rondas por carga. \\
+Comunicación & WiFi. La app no le habla directo: pasa por un gateway propio en la red del edificio. \\
+Interacción & Luz frontal en todas las versiones y función de voz con parlante en la PRO y la EDU. Las usamos para avisar a las personas que se cruza. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Qué existe y qué habría que desarrollar}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{@{}L L@{}}
+\toprule
+\textbf{Disponible} & \textbf{Requiere equipamiento o desarrollo extra} \\
+\midrule
+Locomoción, mapeo y evitación de obstáculos & Detectar si una puerta quedó abierta (modelo de visión propio) \\
+SDK de la versión EDU para órdenes de alto nivel & Gateway entre la app y el robot, con autenticación y registro \\
+Cámara y LiDAR para detectar que hay alguien & Decidir si esa persona está o no autorizada (eso lo decide el guardia) \\
+Batería intercambiable & Base de carga automática, que se compra a terceros o se reemplaza por un cambio manual de batería \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+En el TP no hay hardware. Todo lo que el robot ``hace'' lo hace un simulador dentro de la app, y el contrato de mensajes que proponemos (sección~\ref{sec:contrato}) es nuestro, no el protocolo oficial de Unitree.

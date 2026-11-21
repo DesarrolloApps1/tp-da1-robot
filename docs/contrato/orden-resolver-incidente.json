@@ -1,0 +1,11 @@
+{
+  "type": "command",
+  "commandId": "cmd-0003",
+  "robotId": "go2-vigia-01",
+  "command": "RESOLVE_INCIDENT",
+  "params": {
+    "alertId": "al-0001",
+    "decision": "WAIT"
+  },
+  "issuedAt": "2026-11-16T03:01:15.200Z"
+}
