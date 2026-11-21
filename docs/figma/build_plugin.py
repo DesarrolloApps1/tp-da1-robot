@@ -82,6 +82,8 @@ def main() -> None:
             connections += [(key, tab, dest, "tap") for tab, dest in TABS.items()]
         if find(root, PANEL_BUTTON) is not None:
             connections.append((key, PANEL_BUTTON, "18", "tap"))
+    # Figma no deja navegar al mismo frame (la pestaña del frame actual, el panel desde el panel)
+    connections = [c for c in connections if c[0] != c[2]]
 
     errors = []
     for src, layer, dest, _ in connections:
